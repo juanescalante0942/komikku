@@ -5,6 +5,10 @@
   --foreground: #171717;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -14,13 +18,45 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: linear-gradient(#18181b 0%, #18181b 70%, #183b4e 100%);
+    --foreground: #f3f3e0;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+.menu-btn {
+  @apply md:hidden w-10 h-10 grid place-items-center rounded-xl ring-inset ring-1 ring-zinc-50/[0.02] backdrop-blur-2xl hover:bg-zinc-50/15 transition-[transform,background-color] active:scale-95;
+}
+
+.navbar {
+  @apply absolute top-full mt-2 right-0 min-w-40 p-2 rounded-2xl ring-inset scale-90 isolate opacity-0 invisible transition-all md:static md:flex md:items-center md:mt-0 md:opacity-100 md:visible;
+}
+
+.navbar.active {
+  @apply opacity-100 scale-100 blur-none visible;
+}
+
+.nav-link {
+  @apply relative grid items-center h-12 px-4 text-xl font-medium tracking-wide text-zinc-50/50 hover:text-zinc-50 transition-colors;
+}
+
+.nav-link::after {
+  content: "";
+  @apply absolute left-0 bottom-0 w-0 h-0.5 bg-zinc-50 transition-all duration-300;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+.container {
+  @apply px-4 mx-auto lg:px-4 xl:max-w-7xl;
+}
+
+.section {
+  @apply py-10 lg:py-16;
 }
