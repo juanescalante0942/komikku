@@ -35,6 +35,7 @@ const Navbar = ({ navOpen }: NavbarProps) => {
     return () => {
       observer.disconnect();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const navItems = [
@@ -49,8 +50,13 @@ const Navbar = ({ navOpen }: NavbarProps) => {
       className: "nav-link",
     },
     {
-      label: "SupaSearch",
-      link: "#supaSearch",
+      label: "MangAI",
+      link: "/mangai",
+      className: "nav-link",
+    },
+    {
+      label: "Favorites",
+      link: "/favorites",
       className: "nav-link",
     },
   ];

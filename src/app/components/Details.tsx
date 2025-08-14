@@ -3,6 +3,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import { get, set, del } from "idb-keyval";
 
 type Chapter = {
   chapterId: string;
@@ -34,6 +35,9 @@ const Details = () => {
   const { id } = useParams<{ id: string }>();
   const [manga, setManga] = useState<MangaDetails | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Favorites
+  const [isFavorite, setIsFavorite] = useState(false);
 
   // Sorting & Pagination states
   const [sortOrder, setSortOrder] = useState<"latest" | "oldest">("latest");
@@ -92,6 +96,32 @@ const Details = () => {
 
     fetchRecommendations();
   }, [manga]);
+
+  // ✅ Load bookmark state from IndexedDB
+  useEffect(() => {
+    if (!id) return;
+    get(`favorite-${id}`).then((data) => {
+      if (data) setIsFavorite(true);
+    });
+  }, [id]);
+
+  // ✅ Toggle favorite
+  const toggleFavorite = async () => {
+    if (!manga) return;
+
+    if (isFavorite) {
+      await del(`favorite-${manga.id}`);
+      setIsFavorite(false);
+    } else {
+      await set(`favorite-${manga.id}`, {
+        id: manga.id,
+        title: manga.title,
+        imageUrl: manga.imageUrl,
+        author: manga.author,
+      });
+      setIsFavorite(true);
+    }
+  };
 
   const sortedChapters = useMemo(() => {
     if (!manga) return [];
@@ -164,6 +194,19 @@ const Details = () => {
                   </span>
                 ))}
               </div>
+            </div>
+            <div className="mt-4">
+              {/* ✅ Favorite Button */}
+              <button
+                onClick={toggleFavorite}
+                className={`px-3 py-1 text-sm rounded ${
+                  isFavorite
+                    ? "bg-red-500 hover:bg-red-600"
+                    : "bg-emerald-500 hover:bg-emerald-600"
+                }`}
+              >
+                {isFavorite ? "Remove Favorite" : "Add Favorite"}
+              </button>
             </div>
           </div>
         </div>
