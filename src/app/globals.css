@@ -18,14 +18,44 @@ html {
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: linear-gradient(#18181b 0%, #18181b 70%, #183b4e 100%);
-    --foreground: #f3f3e0;
+    /* Background — subtle zinc gradient with depth */
+    --background: linear-gradient(#18181b 0%, #1e1e20 70%, #2d2d30 100%);
+
+    /* Text — off-white for softer contrast */
+    --foreground: #f4f4f5; /* zinc-50 */
+
+    --primary: #b91c1c;
+
+    --secondary: #fbbf24; /* amber-400 */
+
+    /* Muted text — softer zinc tone */
+    --muted: #a1a1aa; /* zinc-400 */
+
+    /* Optional: borders/dividers */
+    --border: #3f3f46; /* zinc-700 */
   }
 }
 
 body {
+  position: relative;
   background: var(--background);
   color: var(--foreground);
+  overflow-x: hidden;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("/images/hero.jpg");
+  background-size: cover;
+  background-position: center;
+  filter: blur(4px);
+  opacity: 0.05;
+  z-index: -1;
 }
 
 .menu-btn {
@@ -33,7 +63,7 @@ body {
 }
 
 .navbar {
-  @apply absolute top-full mt-2 right-0 min-w-40 p-2 rounded-2xl ring-inset scale-90 isolate opacity-0 invisible transition-all md:static md:flex md:items-center md:mt-0 md:opacity-100 md:visible;
+  @apply absolute top-full mt-2 right-0 min-w-40 p-2 sm:backdrop-blur-2xl md:backdrop-blur-none rounded-2xl ring-inset scale-90 isolate opacity-0 invisible transition-all md:bg-zinc-500/0 md:static md:flex md:items-center md:mt-0 md:opacity-100 md:visible;
 }
 
 .navbar.active {
@@ -41,7 +71,7 @@ body {
 }
 
 .nav-link {
-  @apply relative grid items-center h-12 px-4 text-xl font-medium tracking-wide text-zinc-50/50 hover:text-zinc-50 transition-colors;
+  @apply relative grid items-center h-10 px-4 text-lg font-medium tracking-wide text-zinc-50;
 }
 
 .nav-link::after {

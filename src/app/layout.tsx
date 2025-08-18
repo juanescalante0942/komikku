@@ -1,11 +1,11 @@
-import { M_PLUS_Rounded_1c } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 
-const mplus = M_PLUS_Rounded_1c({
+const inter = Inter({
   subsets: ["latin"],
-  weight: ["100", "300", "400", "500", "700", "800", "900"],
+  weight: ["100", "300", "400", "500", "600", "700", "800", "900"],
 });
 
 export default function RootLayout({
@@ -14,14 +14,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={mplus.className}>
+    <html lang="en" className={inter.className}>
       <head>
         <link
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded"
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-screen antialiased">
+      <body className="flex flex-col min-h-screen antialiased">
         <Header />
         <main className="flex-grow">{children}</main>
         <Footer />
