@@ -4,6 +4,7 @@ import Navbar from "./Navbar";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Header = () => {
   const [mounted, setMounted] = useState(false);
@@ -89,45 +90,57 @@ const Header = () => {
       </header>
 
       {/* Search overlay */}
-      {searchOpen && (
-        <div
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 p-4 flex justify-center"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setSearchOpen(false);
-          }}
-        >
-          <div className="w-full max-w-md mt-24">
-            <form
-              onSubmit={handleSearch}
-              className="relative flex bg-zinc-900 rounded-lg overflow-hidden shadow-lg"
+      <AnimatePresence>
+        {searchOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 p-4 flex justify-center"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setSearchOpen(false);
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className="w-full max-w-md mt-24"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Search icon */}
-              <span className="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                search
-              </span>
-
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search manga..."
-                className="flex-1 pl-10 pr-4 p-4 bg-transparent text-white placeholder-gray-400 focus:outline-none"
-                autoFocus
-              />
-
-              {/* Close button */}
-              <button
-                type="button"
-                onClick={() => setSearchOpen(false)}
-                className="px-4 flex items-center justify-center text-white hover:bg-zinc-800"
+              <form
+                onSubmit={handleSearch}
+                className="relative flex bg-zinc-900 rounded-lg overflow-hidden shadow-lg"
               >
-                <span className="material-symbols-rounded">close</span>
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
+                {/* Search icon */}
+                <span className="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                  search
+                </span>
+
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search manga..."
+                  className="flex-1 pl-10 pr-4 p-4 bg-transparent text-white placeholder-gray-400 focus:outline-none"
+                  autoFocus
+                />
+
+                {/* Close button */}
+                <button
+                  type="button"
+                  onClick={() => setSearchOpen(false)}
+                  className="px-4 flex items-center justify-center text-white hover:bg-zinc-800"
+                >
+                  <span className="material-symbols-rounded">close</span>
+                </button>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 };

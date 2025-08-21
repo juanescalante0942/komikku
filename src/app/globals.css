@@ -90,3 +90,22 @@ body::before {
 .section {
   @apply py-10 lg:py-16;
 }
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--border); /* zinc-900 background */
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--muted); /* zinc-700 */
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted); /* zinc-600 on hover */
+}

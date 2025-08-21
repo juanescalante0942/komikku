@@ -1,12 +1,14 @@
 "use client";
 import { useKeenSlider } from "keen-slider/react";
+import { motion } from "framer-motion";
 import "keen-slider/keen-slider.min.css";
 import Image from "next/image";
+import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect } from "react";
 
 type MangaPick = {
-  id: number;
+  id: string;
   title: string;
   image: string;
   imageChar: string;
@@ -15,42 +17,42 @@ type MangaPick = {
 
 const picks: MangaPick[] = [
   {
-    id: 1,
+    id: "jujutsu-kaisen",
     title: "Jujutsu Kaisen",
     image: "/images/carousel/background/jjk.jpg",
     imageChar: "/images/carousel/character/jjk.png",
     titleImage: "/images/carousel/title/jjk.png",
   },
   {
-    id: 2,
+    id: "chainsaw-man",
     title: "Chainsawman",
     image: "/images/carousel/background/chainsawman.jpg",
     imageChar: "/images/carousel/character/chainsawman.png",
     titleImage: "/images/carousel/title/chainsawman.png",
   },
   {
-    id: 3,
+    id: "jojo-s-bizarre-adventure-part-3-stardust-crusaders-colored",
     title: "Jojo's Bizarre Adventure: Stardust Crusaders",
     image: "/images/carousel/background/jojo.png",
     imageChar: "/images/carousel/character/jojo.png",
     titleImage: "/images/carousel/title/jojo.png",
   },
   {
-    id: 4,
+    id: "vinland-saga",
     title: "Vinland Saga",
     image: "/images/carousel/background/vinland.png",
     imageChar: "/images/carousel/character/vinland.png",
     titleImage: "/images/carousel/title/vinland.png",
   },
   {
-    id: 5,
+    id: "oyasumi-punpun",
     title: "Oyasumi Punpun",
     image: "/images/carousel/background/punpun.jpg",
     imageChar: "/images/carousel/character/punpun.png",
     titleImage: "/images/carousel/title/punpun.png",
   },
   {
-    id: 6,
+    id: "kuroko-no-basket",
     title: "Kuroko's Basketball",
     image: "/images/carousel/background/kuroko.jpg",
     imageChar: "/images/carousel/character/kuroko.png",
@@ -84,7 +86,13 @@ export default function DevTopPicks() {
   }, [instanceRef]);
 
   return (
-    <div className="relative mt-8">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="relative mt-4"
+    >
       {/* Blur overlays */}
       <div className="pointer-events-none absolute top-0 left-0 z-10 h-full w-16 bg-gradient-to-r from-zinc-950 to-transparent" />
       <div className="pointer-events-none absolute top-0 right-0 z-10 h-full w-16 bg-gradient-to-l from-zinc-950 to-transparent" />
@@ -106,9 +114,10 @@ export default function DevTopPicks() {
       {/* Carousel */}
       <div ref={sliderRef} className="keen-slider">
         {picks.map((manga) => (
-          <div
+          <Link
+            href={`/manga/${manga.id}`}
             key={manga.id}
-            className="keen-slider__slide relative w-120 h-80 flex items-center justify-center group"
+            className="keen-slider__slide relative w-120 h-80 flex items-center justify-center group drop-shadow-lg"
           >
             {/* Background box with blur + gradient */}
             <div className="absolute inset-0 rounded-2xl overflow-hidden z-0">
@@ -146,9 +155,9 @@ export default function DevTopPicks() {
                 />
               </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
-    </div>
+    </motion.div>
   );
 }

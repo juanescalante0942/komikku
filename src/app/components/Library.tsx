@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 
 type Manga = {
   id: string;
@@ -77,7 +78,7 @@ const Library = () => {
       <div className="container mx-auto px-4">
         <div className="text-center mb-8">
           <h2 className="text-5xl font-bold text-white mb-2">Library</h2>
-          <p className="text-gray-400 mb-4">
+          <p className="text-[var(--secondary)] text-lg mb-4">
             Explore all available manga titles.
           </p>
         </div>
@@ -86,7 +87,7 @@ const Library = () => {
           <span className="text-white text-md font-medium">Filter:</span>
           <button
             onClick={() => setIsGenreModalOpen(true)}
-            className="px-4 py-2 rounded bg-emerald-600 text-white hover:bg-emerald-500 transition flex items-center gap-2"
+            className="px-4 py-2 rounded bg-[var(--primary)] text-white hover:scale-[1.05] transition flex items-center gap-2"
           >
             <span className="font-semibold">{selectedGenre}</span>
             <svg
@@ -104,51 +105,70 @@ const Library = () => {
           </button>
         </div>
 
-        {isGenreModalOpen && (
-          <div
-            className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center"
-            onClick={() => setIsGenreModalOpen(false)}
-          >
-            <div
-              className="bg-zinc-900 p-6 rounded max-w-md w-full max-h-[80vh] overflow-y-auto"
-              onClick={(e) => e.stopPropagation()}
+        <AnimatePresence>
+          {isGenreModalOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center"
+              onClick={() => setIsGenreModalOpen(false)}
             >
-              <h3 className="text-xl text-white font-bold mb-4">
-                Select a Genre
-              </h3>
-              <div className="grid grid-cols-2 gap-3">
-                {genreList.map((genre) => (
-                  <button
-                    key={genre}
-                    onClick={() => {
-                      setSelectedGenre(genre);
-                      setPage(1);
-                      setIsGenreModalOpen(false);
-                    }}
-                    className={`px-3 py-2 rounded text-sm ${
-                      genre === selectedGenre
-                        ? "bg-emerald-600 text-white"
-                        : "bg-zinc-700 text-gray-200 hover:bg-zinc-600"
-                    }`}
-                  >
-                    {genre}
-                  </button>
-                ))}
-              </div>
-              <button
-                onClick={() => setIsGenreModalOpen(false)}
-                className="mt-6 block w-full px-4 py-2 rounded bg-gray-700 text-white hover:bg-gray-600"
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+                className="bg-zinc-900 p-6 rounded-xl max-w-2xl w-full max-h-[80vh] shadow-lg"
+                onClick={(e) => e.stopPropagation()}
               >
-                Close
-              </button>
-            </div>
-          </div>
-        )}
+                <h3 className="text-xl text-white font-bold mb-4">
+                  Select a Genre
+                </h3>
+
+                <div className="grid grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto p-2">
+                  {genreList.map((genre) => (
+                    <button
+                      key={genre}
+                      onClick={() => {
+                        setSelectedGenre(genre);
+                        setPage(1);
+                        setIsGenreModalOpen(false);
+                      }}
+                      className={`px-3 py-2 rounded text-sm ${
+                        genre === selectedGenre
+                          ? "bg-[var(--primary)] text-white"
+                          : "bg-[var(--border)] text-gray-200 hover:bg-[var(--primary)] transition-colors duration-300"
+                      }`}
+                    >
+                      {genre}
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {loading ? (
-          <p className="text-gray-300 text-center mt-10">
-            Loading manga list...
-          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-4">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div
+                key={i}
+                className="animate-pulse relative rounded-lg overflow-hidden shadow-md"
+              >
+                {/* Image placeholder */}
+                <div className="aspect-[2/3] w-full bg-zinc-800" />
+
+                {/* Overlay text placeholders */}
+                <div className="absolute bottom-0 left-0 p-4 w-full space-y-2">
+                  <div className="h-4 bg-zinc-700 rounded w-3/4" />
+                  <div className="h-3 bg-zinc-700 rounded w-1/2" />
+                </div>
+              </div>
+            ))}
+          </div>
         ) : (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-4">
@@ -156,27 +176,26 @@ const Library = () => {
                 <Link
                   href={`/manga/${manga.id}`}
                   key={manga.id}
-                  className="bg-zinc-900 rounded-lg overflow-hidden shadow-md transition hover:scale-[1.02] hover:shadow-lg"
+                  className="group relative rounded-lg overflow-hidden shadow-md transition hover:scale-[1.05] hover:shadow-lg"
                 >
-                  <Image
-                    src={manga.image}
-                    alt={manga.title}
-                    width={400}
-                    height={250}
-                    className="w-full h-[250px] object-cover"
-                  />
-                  <div className="p-4">
-                    <h3 className="text-lg font-semibold text-white mb-1">
+                  {/* Manga Image */}
+                  <div className="aspect-[2/3] w-full relative">
+                    <Image
+                      src={manga.image}
+                      alt={manga.title}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-[1.05]"
+                    />
+                  </div>
+
+                  {/* Overlay for readability */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent transition duration-300 group-hover:from-black/90 group-hover:via-black/40" />
+
+                  {/* Text content */}
+                  <div className="absolute bottom-0 left-0 p-4 transition-transform duration-300 group-hover:-translate-y-2">
+                    <h3 className="text-sm font-semibold text-white mb-1 line-clamp-2 group-hover:text-[var(--secondary)] transition-colors">
                       {manga.title}
                     </h3>
-                    {manga.latestChapter && (
-                      <p className="text-sm text-emerald-400 mb-2">
-                        Latest: {manga.latestChapter}
-                      </p>
-                    )}
-                    <p className="text-sm text-gray-400 line-clamp-3">
-                      {manga.description}
-                    </p>
                   </div>
                 </Link>
               ))}
@@ -209,7 +228,7 @@ const Library = () => {
                     onClick={() => setPage(pageNum)}
                     className={`px-4 py-2 rounded text-white ${
                       pageNum === page
-                        ? "bg-emerald-600 font-bold"
+                        ? "bg-[var(--primary)] font-bold"
                         : "bg-zinc-700 hover:bg-zinc-600"
                     }`}
                   >
