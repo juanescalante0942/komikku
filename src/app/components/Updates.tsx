@@ -13,7 +13,7 @@ type Manga = {
 
 const Updates = () => {
   const [mangaList, setMangaList] = useState<Manga[]>([]);
-  const [loading, setLoading] = useState(true); // ✅ track loading
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchLatest = async () => {
@@ -64,10 +64,10 @@ const Updates = () => {
             key={manga.id}
             className="group relative rounded-lg overflow-hidden shadow-md transition hover:scale-[1.05] hover:shadow-lg"
           >
-            <div className="aspect-[2/3] w-full relative">
+            <div className="aspect-[2/3] w-full relative bg-[url('/images/coverPlaceholder.svg')] bg-cover">
               <Image
                 src={manga.image}
-                alt={manga.title}
+                alt=""
                 fill
                 className="object-cover transition-transform duration-500 group-hover:scale-[1.05]"
               />

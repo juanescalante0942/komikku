@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import { set } from "idb-keyval";
 
 type ChapterData = {
   title: string;
@@ -79,7 +81,6 @@ export default function Reader() {
           }
         }
       } catch (err) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if ((err as any).name !== "AbortError") console.error(err);
       } finally {
         if (mounted) setLoading(false);
@@ -94,8 +95,50 @@ export default function Reader() {
   }, [id, chapter, chapterNum]);
 
   useEffect(() => {
+    if (!id || !chapterNum || !data) return;
+
+    const key = `progress-${id}-${chapterNum}`;
+    const el = document.scrollingElement || document.documentElement;
+
+    let raf = 0;
+    let lastSaved = 0;
+
+    const computeAndSave = () => {
+      const max = Math.max(1, el.scrollHeight - el.clientHeight);
+      let p = (el.scrollTop / max) * 100;
+
+      if (el.scrollTop + el.clientHeight >= el.scrollHeight - 5) {
+        p = 100;
+      }
+
+      const rounded = Math.min(100, Math.max(0, Math.floor(p)));
+
+      if (rounded > lastSaved) {
+        lastSaved = rounded;
+        set(key, rounded).catch((err) =>
+          console.error("Failed to save progress state:", err)
+        );
+      }
+    };
+
+    const onScrollOrResize = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(computeAndSave);
+    };
+
+    window.addEventListener("scroll", onScrollOrResize, { passive: true });
+    window.addEventListener("resize", onScrollOrResize);
+
+    return () => {
+      window.removeEventListener("scroll", onScrollOrResize);
+      window.removeEventListener("resize", onScrollOrResize);
+      cancelAnimationFrame(raf);
+    };
+  }, [id, chapterNum, data]);
+
+  useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768); // Treat <768px as mobile
+      setIsMobile(window.innerWidth < 768);
     };
 
     checkMobile();

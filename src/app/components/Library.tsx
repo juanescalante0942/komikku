@@ -182,7 +182,7 @@ const Library = () => {
                   <div className="aspect-[2/3] w-full relative">
                     <Image
                       src={manga.image}
-                      alt={manga.title}
+                      alt=""
                       fill
                       className="object-cover transition-transform duration-500 group-hover:scale-[1.05]"
                     />

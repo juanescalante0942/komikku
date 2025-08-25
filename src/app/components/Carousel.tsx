@@ -120,7 +120,7 @@ export default function DevTopPicks() {
             className="keen-slider__slide relative w-120 h-80 flex items-center justify-center group drop-shadow-lg"
           >
             {/* Background box with blur + gradient */}
-            <div className="absolute inset-0 rounded-2xl overflow-hidden z-0">
+            <div className="absolute inset-0 rounded-lg overflow-hidden z-0">
               <Image
                 src={manga.image}
                 alt={`${manga.title} background`}
