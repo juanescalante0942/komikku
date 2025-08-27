@@ -76,8 +76,6 @@ Return up to 6 suggestions. Do NOT invent titles if unsure — put "unknown" as 
       `${systemPrompt}\nUser query: "${query}"`
     );
 
-    console.log("Gemini raw output:", text);
-
     const suggestions = parseAiText(text).slice(0, 6);
 
     // Search GoManga API for each suggestion

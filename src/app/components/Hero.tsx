@@ -28,11 +28,16 @@ const Hero = () => {
       >
         <div className="container items-center lg:grid lg:grid-cols-2">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            className="hidden lg:block mx-auto"
             viewport={{ once: true }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-            className="hidden lg:block"
+            initial={{ y: 0 }}
+            animate={{ y: [0, -10, 0] }}
+            transition={{
+              repeat: Infinity,
+              repeatType: "loop",
+              duration: 1.5,
+              ease: "easeInOut",
+            }}
           >
             <figure className="w-full max-w-[380px] overflow-hidden">
               <Image
@@ -72,9 +77,9 @@ const Hero = () => {
                   visible: { opacity: 1, y: 0 },
                 }}
                 transition={{ duration: 0.4 }}
-                className="text-2xl text-[var(--secondary)] font-light"
+                className="text-xl text-[var(--secondary)] font-light"
               >
-                Your Seamless Manga Reading Experience
+                Discover, read, and fall in love with manga seamlessly.
               </motion.p>
             </motion.div>
 
@@ -83,61 +88,102 @@ const Hero = () => {
               whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               transition={{ duration: 0.5, ease: "easeOut", delay: 0.4 }}
               viewport={{ once: true }}
-              className="text-[var(--foreground)] leading-relaxed text-justify flex-col gap-4 flex"
+              className="text-[var(--foreground)] leading-relaxed text-justify flex-col gap-4 flex font-light"
             >
               <div>
-                Komikku is a clean, fast, and intuitive manga reader that lets
-                you dive straight into your favorite stories — no login
-                required.
+                Komikku is your clean, fast, and intuitive manga reader—crafted
+                so you can dive straight into the stories you love, no sign-ups,
+                no fuss.
               </div>{" "}
               <div>
-                Whether you’re into action, romance, fantasy, or slice of life,
-                Komikku delivers a smooth reading experience across devices.
+                From action-packed adventures to heartwarming romances, from
+                epic fantasies to everyday slice-of-life moments, Komikku
+                delivers a smooth and immersive experience on any device.
               </div>{" "}
               <div>
-                Explore by genre, search smarter with <strong>MangAI</strong>,
-                and pick up right where you left off by adding it to your
-                favorites.{" "}
-              </div>
+                With smart tools like MangaAI for personalized recommendations,
+                easy browsing by genre, and a favorites system to save your
+                progress, exploring manga has never felt this effortless.
+              </div>{" "}
               <button
                 onClick={() => router.push("/library")}
                 className="group flex items-center justify-center gap-2 bg-[var(--primary)] text-[var(--foreground)] py-4 px-6 rounded-lg transition-transform duration-300 hover:scale-[1.02] hover:shadow-lg"
               >
                 <BookOpen className="w-5 h-5 transition-transform duration-300 group-hover:-rotate-12" />
-                Start Reading!
+                Start Reading Now!
               </button>
             </motion.div>
           </div>
         </div>
       </motion.section>
-      {/* Dev top picks */}
+      {/* Dev's Top Picks */}
       <section className="pt-20 lg:pt-30">
-        <div className="container">
-          <motion.p
-            variants={{
-              hidden: { opacity: 0, y: 20 },
-              visible: { opacity: 1, y: 0 },
-            }}
-            transition={{ duration: 0.4 }}
-            className="text-3xl font-semibold text-[var(--secondary)] text-center"
-          >
-            Dev&apos;s Top Picks
-          </motion.p>
-          <Carousel />
-        </div>
-      </section>
-      {/* Latest Updates */}
-      <section className="pt-20 lg:pt-30">
-        <div className="container">
+        <div className="container text-center">
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="text-3xl font-semibold text-[var(--secondary)] text-center"
+            className="text-4xl font-semibold tracking-tight text-[var(--foreground)] mb-3"
+          >
+            Dev&apos;s Top Picks
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.4 }}
+            className="w-30 h-1 mx-auto mb-4 bg-[var(--primary)] rounded-full"
+          ></motion.div>
+
+          {/* Subtitle */}
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="text-[var(--secondary)] text-md font-light max-w-2xl mx-auto mt-2"
+          >
+            A selection of handpicked manga chosen by the developer to help you
+            discover standout titles worth reading.
+          </motion.p>
+
+          <Carousel />
+        </div>
+      </section>
+
+      {/* Latest Updates */}
+      <section className="pt-20 lg:pt-30">
+        <div className="container text-center">
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="text-4xl font-semibold tracking-tight text-[var(--foreground)] mb-3"
           >
             Latest Updates
           </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.4 }}
+            className="w-30 h-1 mx-auto mb-4 bg-[var(--primary)] rounded-full"
+          ></motion.div>
+
+          {/* Subtitle */}
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="text-[var(--secondary)] text-md font-light max-w-2xl mx-auto mt-2"
+          >
+            Stay up to date with the newest chapters and recently added manga so
+            you never miss a release.
+          </motion.p>
+
           <Updates />
         </div>
       </section>

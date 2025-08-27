@@ -77,13 +77,37 @@ const Library = () => {
     <section className="pt-25 lg:pt-28">
       <div className="container mx-auto px-4">
         <div className="text-center mb-8">
-          <h2 className="text-5xl font-bold text-white mb-2">Library</h2>
-          <p className="text-[var(--secondary)] text-lg mb-4">
-            Explore all available manga titles.
-          </p>
+          {/* Fade + Slide Down Title */}
+          <motion.h2
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="text-5xl font-extrabold text-white mb-3 tracking-tight drop-shadow-md"
+          >
+            Library
+          </motion.h2>
+
+          {/* Simple Fade Divider */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.4 }}
+            className="w-50 h-1 mx-auto mb-4 bg-[var(--primary)] rounded-full"
+          ></motion.div>
+
+          {/* Fade + Slide Up Subtitle */}
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.5 }}
+            className="text-[var(--secondary)] text-lg font-light max-w-xl mx-auto"
+          >
+            Browse through a collection of available manga titles, ready for you
+            to explore anytime.
+          </motion.p>
         </div>
 
-        <div className="mb-8 justify-end items-center flex gap-4">
+        <div className="mb-4 justify-end items-center flex gap-4">
           <span className="text-white text-md font-medium">Filter:</span>
           <button
             onClick={() => setIsGenreModalOpen(true)}
@@ -171,7 +195,18 @@ const Library = () => {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-4">
+            <motion.div
+              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{
+                opacity: 1,
+                y: 0,
+                transition: {
+                  duration: 0.3,
+                  ease: "easeOut",
+                },
+              }}
+            >
               {sortedMangaList.map((manga) => (
                 <Link
                   href={`/manga/${manga.id}`}
@@ -199,7 +234,7 @@ const Library = () => {
                   </div>
                 </Link>
               ))}
-            </div>
+            </motion.div>
 
             {/* Pagination */}
             <div className="flex justify-center items-center gap-2 mt-10 flex-wrap">

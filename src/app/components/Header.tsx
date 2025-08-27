@@ -79,7 +79,7 @@ const Header = () => {
             {/* Search button */}
             <button
               onClick={() => setSearchOpen(true)}
-              className="flex items-center justify-center w-10 h-10 rounded-xl ring-inset ring-1 ring-zinc-50/[0.02] backdrop-blur-2xl hover:bg-zinc-50/15 transition-[transform,background-color] active:scale-95"
+              className="flex items-center justify-center w-10 h-10 rounded-xl ring-inset ring-1 ring-zinc-50/[0.02] backdrop-blur-lg hover:bg-zinc-50/15 transition-[transform,background-color] active:scale-95"
             >
               <span className="material-symbols-rounded text-white">
                 search
@@ -112,7 +112,7 @@ const Header = () => {
             >
               <form
                 onSubmit={handleSearch}
-                className="relative flex bg-zinc-900 rounded-lg overflow-hidden shadow-lg"
+                className="relative flex bg-zinc-900 border border-[var(--border)] rounded-lg overflow-hidden shadow-lg"
               >
                 {/* Search icon */}
                 <span className="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">

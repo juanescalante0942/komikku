@@ -176,7 +176,7 @@ const Details = () => {
             </div>
 
             {/* Text skeleton */}
-            <div className="flex-1 space-y-4">
+            <div className="flex-1 space-y-4 mt-6">
               <div className="h-10 bg-zinc-700 rounded-lg w-3/4" />
               <div className="h-4 bg-zinc-700 rounded-lg w-1/4" />
               <div className="h-4 bg-zinc-700 rounded-lg w-1/4" />
@@ -232,8 +232,21 @@ const Details = () => {
 
   if (!manga) {
     return (
-      <section className="pt-25 lg:pt-28">
-        <p className="text-gray-300 text-center mt-10">Manga not found.</p>
+      <section className="pt-25 lg:pt-28 relative min-h-[60vh] flex items-center justify-center">
+        <div className="bg-zinc-900/70 backdrop-blur-md border border-zinc-800 rounded-2xl p-8 text-center shadow-xl">
+          <p className="text-[var(--primary)] text-xl font-semibold mb-4">
+            Could not load manga
+          </p>
+          <p className="text-zinc-400 mb-6">
+            The manga you’re looking for may be unavailable or removed.
+          </p>
+          <Link
+            href="/library"
+            className="inline-block bg-[var(--secondary)] text-black px-6 py-2.5 rounded-lg transition-all shadow-md hover:shadow-lg"
+          >
+            Go Back to Library
+          </Link>
+        </div>
       </section>
     );
   }
@@ -244,7 +257,13 @@ const Details = () => {
         {/* Manga Info */}
         <div className="flex flex-col md:flex-row gap-6 mb-10">
           {/* Cover + Favorite Button */}
-          <div className="w-full md:w-1/4 max-w-[250px] sm:mx-auto flex flex-col items-center">
+          <motion.div
+            initial={{ opacity: 0, filter: "blur(8px)" }}
+            whileInView={{ opacity: 1, filter: "blur(0px)" }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            viewport={{ once: true }}
+            className="w-full md:w-1/4 max-w-[250px] sm:mx-auto flex flex-col items-center"
+          >
             <Image
               src={manga.imageUrl}
               alt=""
@@ -269,10 +288,16 @@ const Details = () => {
               />
               <span>{isFavorite ? "Favorited" : "Add to Favorites"}</span>
             </button>
-          </div>
+          </motion.div>
 
           {/* Manga Details */}
-          <div className="w-full md:flex-1 flex-col flex gap-2 text-[var(--foreground)]">
+          <motion.div
+            initial={{ opacity: 0, filter: "blur(8px)" }}
+            whileInView={{ opacity: 1, filter: "blur(0px)" }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            viewport={{ once: true }}
+            className="w-full md:flex-1 flex-col flex gap-2 text-[var(--foreground)] mt-6"
+          >
             <h1 className="text-3xl font-bold">{manga.title}</h1>
             <p className="text-xl font-light">{manga.author || "Unknown"}</p>
             <p className="text-md font-light">
@@ -303,7 +328,7 @@ const Details = () => {
                 ))}
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
 
         {/* Main content with chapters + recommendations */}
@@ -366,8 +391,15 @@ const Details = () => {
                     </p>
 
                     <div className="text-right text-sm text-gray-300 gap-2 flex flex-row items-end">
+                      {chapterProgress[chapter.chapterId] > 0 && (
+                        <div className="mr-4">
+                          <CircleProgress
+                            value={chapterProgress[chapter.chapterId]}
+                          />
+                        </div>
+                      )}
                       <div className="flex flex-col">
-                        <div className="flex items-center gap-2 justify-end text-gray-200 font-light">
+                        <div className="flex items-center gap-1 justify-end text-gray-200 font-light">
                           <Eye className="w-4 h-4 text-[var(--foreground)]" />
                           {chapter.views}
                         </div>
@@ -382,13 +414,6 @@ const Details = () => {
                           })}
                         </p>
                       </div>
-                      {chapterProgress[chapter.chapterId] > 0 && (
-                        <div className="mt-1">
-                          <CircleProgress
-                            value={chapterProgress[chapter.chapterId]}
-                          />
-                        </div>
-                      )}
                     </div>
                   </Link>
                 </motion.div>

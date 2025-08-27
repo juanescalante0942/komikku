@@ -100,13 +100,13 @@ export default function DevTopPicks() {
       {/* Arrows */}
       <button
         onClick={() => instanceRef.current?.prev()}
-        className="absolute left-2 top-1/2 z-20 -translate-y-1/2 rounded backdrop-blur-xl p-2 hover:bg-zinc-700 transition"
+        className="absolute left-2 top-1/2 z-20 -translate-y-1/2 rounded-lg backdrop-blur-xl p-2 hover:bg-zinc-700 transition"
       >
         <ChevronLeft className="h-6 w-6 text-white" />
       </button>
       <button
         onClick={() => instanceRef.current?.next()}
-        className="absolute right-2 top-1/2 z-20 -translate-y-1/2 rounded backdrop-blur-xl p-2 hover:bg-zinc-700 transition"
+        className="absolute right-2 top-1/2 z-20 -translate-y-1/2 rounded-lg backdrop-blur-xl p-2 hover:bg-zinc-700 transition"
       >
         <ChevronRight className="h-6 w-6 text-white" />
       </button>

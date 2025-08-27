@@ -14,7 +14,10 @@ export default function CircleProgress({
   const offset = circumference - (value / 100) * circumference;
 
   return (
-    <div className="relative flex items-center justify-center">
+    <div
+      className="relative flex items-center justify-center"
+      title={`${Math.round(value)}% chapter progress`}
+    >
       <svg width={size} height={size} className="transform -rotate-90">
         {/* background circle */}
         <circle
@@ -23,7 +26,7 @@ export default function CircleProgress({
           r={radius}
           stroke="currentColor"
           strokeWidth={stroke}
-          className="text-zinc-600"
+          className="text-[var(--muted)]"
           fill="transparent"
         />
         {/* progress circle */}
@@ -43,9 +46,9 @@ export default function CircleProgress({
 
       {/* Inner content */}
       {value >= 100 ? (
-        <Check className="absolute w-4 h-4 text-[var(--primary)]" /> // scaled up
+        <Check className="absolute w-6 h-6 text-[var(--primary)]" />
       ) : (
-        <span className="absolute text-[10px] font-light text-sm text-gray-400">
+        <span className="absolute text-[10px] font-light text-sm text-[var(--muted)]">
           {Math.round(value)}%
         </span>
       )}

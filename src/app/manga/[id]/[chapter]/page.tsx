@@ -6,6 +6,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { set } from "idb-keyval";
 
+import { ArrowLeft, ArrowRight, Book } from "lucide-react";
+
 type ChapterData = {
   title: string;
   chapter: string;
@@ -148,15 +150,47 @@ export default function Reader() {
 
   if (loading) {
     return (
-      <p className="text-gray-300 text-center mt-10">
-        Loading chapter {chapter}...
-      </p>
+      <section className="pt-25 lg:pt-28 relative">
+        <div className="container mx-auto px-4 py-6 text-white">
+          {/* Skeleton top nav */}
+          <div className="flex justify-between items-center mb-5">
+            <div className="w-24 h-8 bg-zinc-700 animate-pulse rounded-lg"></div>
+            <div className="w-40 h-6 bg-zinc-700 animate-pulse rounded-lg"></div>
+            <div className="w-20 h-6 bg-zinc-700 animate-pulse rounded-lg"></div>
+          </div>
+
+          {/* Skeleton pages */}
+          <div className="flex flex-col gap-6 mx-auto max-w-[900px]">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div
+                key={i}
+                className="w-full h-[600px] bg-zinc-800 animate-pulse rounded-lg"
+              />
+            ))}
+          </div>
+        </div>
+      </section>
     );
   }
 
   if (!data) {
     return (
-      <p className="text-center text-red-400 mt-10">Could not load chapter.</p>
+      <section className="pt-25 lg:pt-28 relative min-h-[60vh] flex items-center justify-center">
+        <div className="bg-zinc-900/70 backdrop-blur-md border border-zinc-800 rounded-2xl p-8 text-center shadow-xl">
+          <p className="text-[var(--primary)] text-xl font-semibold mb-4">
+            Could not load chapter
+          </p>
+          <p className="text-zinc-400 mb-6">
+            The chapter you’re looking for may be unavailable or removed.
+          </p>
+          <Link
+            href="/library"
+            className="inline-block bg-[var(--secondary)] text-black px-6 py-2.5 rounded-lg transition-all shadow-md hover:shadow-lg"
+          >
+            Go Back to Library
+          </Link>
+        </div>
+      </section>
     );
   }
 
@@ -164,19 +198,27 @@ export default function Reader() {
     <section className="pt-25 lg:pt-28 relative">
       <div className="container mx-auto px-4 py-6 text-white">
         {/* Top Navigation */}
-        <div className="flex justify-between items-center mb-10 mx-auto ">
+        <div className="flex justify-between items-center gap-4 mb-8 mx-auto max-w-5xl px-4">
+          {/* Back button */}
           <Link
             href={`/manga/${id}`}
-            className="bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded"
+            className="group flex items-center gap-2 bg-zinc-800/90 hover:bg-zinc-700 px-4 py-2 rounded-xl shadow-sm transition-colors hover:scale-[1.02] hover:shadow-lg"
           >
-            ← Chapters
+            <Book className="w-4 h-4 transition-transform duration-300 group-hover:-rotate-12" />
+            <span>Chapters</span>
           </Link>
-          <h1 className="text-lg font-semibold">
-            You are now reading: {data.title}
-          </h1>
-          <div className="text-sm text-gray-400">Chapter {data.chapter}</div>
-        </div>
 
+          {/* Title */}
+          <h1 className="flex-1 text-center text-base sm:text-lg font-medium truncate px-4 text-[var(--foreground)]">
+            <span className="hidden sm:inline">You are now reading: </span>
+            <span className="font-semibold">{data.title}</span>
+          </h1>
+
+          {/* Chapter Badge */}
+          <div className="text-xs sm:text-sm px-3 py-1.5 rounded-lg bg-zinc-800/60 text-gray-300/70 shadow-sm">
+            Chapter {data.chapter}
+          </div>
+        </div>
         {/* Pages */}
         <div
           className="flex flex-col relative mx-auto"
@@ -199,29 +241,33 @@ export default function Reader() {
             </div>
           ))}
         </div>
-
         {/* Bottom Navigation */}
-        <div className="flex justify-center gap-4 mt-8">
+        <div className="flex justify-center gap-3 sm:gap-4 mt-10">
           {hasPrev && (
             <Link
               href={`/manga/${id}/${chapterNum - 1}`}
-              className="bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded"
+              className="group flex items-center gap-2 border border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white px-4 py-2 rounded-lg transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
             >
-              ← Previous
+              <ArrowLeft className="w-4 h-4 transition-transform duration-300 group-hover:-rotate-12" />
+              <span className="hidden sm:inline">Previous</span>
             </Link>
           )}
+
           <Link
             href={`/manga/${id}`}
-            className="bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded"
+            className="group flex items-center gap-2 bg-[var(--secondary)] text-black px-4 py-2 rounded-lg transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
           >
-            📚 Back to Chapters
+            <Book className="w-4 h-4 transition-transform duration-300 group-hover:-rotate-12" />
+            <span>Chapters</span>
           </Link>
+
           {hasNext && (
             <Link
               href={`/manga/${id}/${chapterNum + 1}`}
-              className="bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded"
+              className="group flex items-center gap-2 bg-[var(--primary)] text-white px-4 py-2 rounded-lg transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
             >
-              Next →
+              <span className="hidden sm:inline">Next</span>
+              <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:rotate-12" />
             </Link>
           )}
         </div>

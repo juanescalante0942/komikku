@@ -64,7 +64,7 @@ const Updates = () => {
             key={manga.id}
             className="group relative rounded-lg overflow-hidden shadow-md transition hover:scale-[1.05] hover:shadow-lg"
           >
-            <div className="aspect-[2/3] w-full relative bg-[url('/images/coverPlaceholder.svg')] bg-cover">
+            <div className="aspect-[2/3] w-full relative">
               <Image
                 src={manga.image}
                 alt=""

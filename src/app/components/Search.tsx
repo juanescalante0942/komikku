@@ -59,7 +59,7 @@ const Search = () => {
       <div className="container mx-auto px-4">
         <h1 className="text-3xl font-bold text-white mb-8">
           Search results for:{" "}
-          <span className="text-emerald-400">
+          <span className="text-[var(--secondary)]">
             &quot;{decodeURIComponent(query)}&quot;
           </span>
         </h1>
