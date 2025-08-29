@@ -5,6 +5,8 @@ import Image from "next/image";
 import { keys, get, del } from "idb-keyval";
 import { Heart, HeartOff } from "lucide-react";
 import { motion } from "framer-motion";
+import { HelpCircle } from "lucide-react";
+import { toast } from "react-toastify";
 
 type MangaCard = {
   id: string;
@@ -16,6 +18,7 @@ type MangaCard = {
 export default function FavoritesPage() {
   const [favorites, setFavorites] = useState<MangaCard[]>([]);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [show, setShow] = useState(false);
 
   const loadFavorites = async () => {
     const allKeys = await keys();
@@ -33,6 +36,7 @@ export default function FavoritesPage() {
 
   const removeFavorite = async (id: string) => {
     await del(`favorite-${id}`);
+    toast.error("Removed from favorites");
     setFavorites((prev) => prev.filter((m) => m.id !== id));
   };
 
@@ -44,8 +48,54 @@ export default function FavoritesPage() {
     return (
       <section className="pt-25 lg:pt-28">
         <div className="container mx-auto px-4 text-white">
-          <h1 className="text-3xl font-bold mb-4">Your Favorites</h1>
-          <p className="text-gray-400">
+          <div className="text-center mb-6">
+            {/* Title */}
+            <motion.h1
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white mb-3 tracking-tight drop-shadow-md"
+            >
+              Favorites
+            </motion.h1>
+
+            {/* Simple Fade Divider */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3, duration: 0.4 }}
+              className="w-50 h-1 mx-auto mb-4 bg-[var(--primary)] rounded-full"
+            ></motion.div>
+
+            {/* Subtitle */}
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.5, ease: "easeOut" }}
+              className="text-[var(--secondary)] text-sm sm:text-base md:text-lg font-light max-w-xl mx-auto"
+            >
+              All the manga you’ve saved in one convenient place, stored on your
+              browser with no login required.
+              <span
+                className="relative ml-2 inline-flex"
+                onMouseEnter={() => setShow(true)}
+                onMouseLeave={() => setShow(false)}
+                onClick={() => setShow((s) => !s)} // tap works for mobile
+              >
+                <HelpCircle className="w-5 h-5 text-[var(--secondary)] cursor-pointer" />
+
+                {show && (
+                  <span className="absolute left-1/2 -translate-x-1/2 top-full mt-2 px-3 py-2 text-sm rounded-lg whitespace-nowrap bg-black/80 text-white shadow-lg z-50">
+                    Your favorites are saved directly in your browser using
+                    <span className="font-semibold"> local storage</span>.
+                    They’ll stay even if you refresh or close the site, but will
+                    reset if you clear your browser data.
+                  </span>
+                )}
+              </span>
+            </motion.p>
+          </div>
+          <p className="text-gray-400 mx-auto">
             No favorites yet. Add some from the manga page!
           </p>
         </div>
@@ -62,7 +112,7 @@ export default function FavoritesPage() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
-            className="text-5xl font-extrabold text-white mb-3 tracking-tight drop-shadow-md"
+            className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white mb-3 tracking-tight drop-shadow-md"
           >
             Favorites
           </motion.h1>
@@ -80,10 +130,27 @@ export default function FavoritesPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.5, ease: "easeOut" }}
-            className="text-[var(--secondary)] text-lg font-light max-w-xl mx-auto"
+            className="text-[var(--secondary)] text-sm sm:text-base md:text-lg font-light max-w-xl mx-auto"
           >
             All the manga you’ve saved in one convenient place, stored on your
             browser with no login required.
+            <span
+              className="relative ml-2 inline-flex"
+              onMouseEnter={() => setShow(true)}
+              onMouseLeave={() => setShow(false)}
+              onClick={() => setShow((s) => !s)} // tap works for mobile
+            >
+              <HelpCircle className="w-5 h-5 text-[var(--secondary)] cursor-pointer" />
+
+              {show && (
+                <span className="absolute left-1/2 -translate-x-1/2 top-full mt-2 px-3 py-2 text-sm rounded-lg whitespace-nowrap bg-black/80 text-white shadow-lg z-50">
+                  Your favorites are saved directly in your browser using
+                  <span className="font-semibold"> local storage</span>. They’ll
+                  stay even if you refresh or close the site, but will reset if
+                  you clear your browser data.
+                </span>
+              )}
+            </span>
           </motion.p>
         </div>
 

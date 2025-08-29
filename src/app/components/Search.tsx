@@ -74,9 +74,9 @@ const Search = () => {
               <Link
                 href={`/manga/${manga.id}`}
                 key={manga.id}
-                className="group relative rounded-lg overflow-hidden shadow-md transition hover:scale-[1.03] hover:shadow-lg"
+                className="group relative rounded-lg overflow-hidden shadow-md transition hover:scale-[1.05] hover:shadow-lg"
               >
-                {/* Manga Image with fixed aspect ratio */}
+                {/* Manga Image */}
                 <div className="aspect-[2/3] w-full relative">
                   <Image
                     src={manga.imgUrl}
@@ -87,23 +87,13 @@ const Search = () => {
                 </div>
 
                 {/* Overlay for readability */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent transition duration-300 group-hover:from-black/80 group-hover:via-black/40" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent transition duration-300 group-hover:from-black/90 group-hover:via-black/40" />
 
-                {/* Content */}
-                <div className="relative p-4 transition-transform duration-300 group-hover:-translate-y-1">
-                  <h3 className="text-lg font-semibold text-white mb-1 line-clamp-1">
+                {/* Text content */}
+                <div className="absolute bottom-0 left-0 p-4 transition-transform duration-300 group-hover:-translate-y-2">
+                  <h3 className="text-sm font-semibold text-white mb-1 line-clamp-2 group-hover:text-[var(--secondary)] transition-colors">
                     {manga.title}
                   </h3>
-                  <p className="text-sm text-emerald-400 mb-1">
-                    Latest: {manga.latestChapters[0]?.name ?? "N/A"}
-                  </p>
-                  <p className="text-sm text-gray-300 mb-1 line-clamp-1">
-                    Authors: {manga.authors}
-                  </p>
-                  <p className="text-sm text-gray-400 mb-1">
-                    Updated: {manga.updated}
-                  </p>
-                  <p className="text-sm text-gray-500">Views: {manga.views}</p>
                 </div>
               </Link>
             ))}

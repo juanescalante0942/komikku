@@ -123,7 +123,7 @@ const Header = () => {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search manga..."
+                  placeholder="Search for manga"
                   className="flex-1 pl-10 pr-4 p-4 bg-transparent text-white placeholder-gray-400 focus:outline-none"
                   autoFocus
                 />

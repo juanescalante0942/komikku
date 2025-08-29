@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 "use client";
 import { useState, useEffect } from "react";
 import Image from "next/image";
@@ -49,6 +50,8 @@ export default function MangAI() {
   const [data, setData] = useState<AIRecommendResponse | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [currentLine, setCurrentLine] = useState(wittyLines[0]);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     if (!loading) return;
@@ -93,7 +96,7 @@ export default function MangAI() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="text-5xl font-bold mb-3"
+            className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3"
           >
             MangAI
           </motion.h1>
@@ -111,7 +114,7 @@ export default function MangAI() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.6, ease: "easeOut" }}
-            className="text-[var(--secondary)] font-light max-w-xl mx-auto mt-4"
+            className="text-sm sm:text-base md:text-lg text-[var(--secondary)] font-light max-w-xl mx-auto mt-4"
           >
             Your AI-powered manga assistant — tell it what you need, and it will
             recommend titles based on your preferences.
@@ -121,7 +124,7 @@ export default function MangAI() {
         {/* Search */}
         <div className="flex px-8 gap-2">
           <input
-            placeholder="Ex: Something like Jujutsu Kaisen but..."
+            placeholder="Something like Jujutsu Kaisen but..."
             value={q}
             onChange={(e) => setQ(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -136,7 +139,20 @@ export default function MangAI() {
           </button>
         </div>
 
-        {loading && (
+        {/* Empty State (before search) */}
+        {!loading && !data && !err && (
+          <div className="mt-20 flex flex-col items-center justify-center text-center text-gray-400">
+            <Search className="w-12 h-12 mb-3 opacity-60" />
+            <p className="text-base sm:text-lg md:text-xl">
+              Start by typing mangas you like or what you&apos;re looking for.
+            </p>
+            <p className="text-sm sm:text-base mt-1 opacity-70">
+              MangAI will recommend titles for you.
+            </p>
+          </div>
+        )}
+
+        {loading && mounted && (
           <div className="mt-20 flex flex-col items-center gap-3 text-[var(--secondary)]">
             {/* Manga Page Flip Loader */}
             <div className="loader grid grid-cols-3 gap-1 w-16 h-16">

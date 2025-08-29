@@ -82,7 +82,7 @@ const Library = () => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
-            className="text-5xl font-extrabold text-white mb-3 tracking-tight drop-shadow-md"
+            className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white mb-3 tracking-tight drop-shadow-md"
           >
             Library
           </motion.h2>
@@ -100,7 +100,7 @@ const Library = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.5 }}
-            className="text-[var(--secondary)] text-lg font-light max-w-xl mx-auto"
+            className="text-[var(--secondary)] text-sm sm:text-base md:text-lg font-light max-w-xl mx-auto"
           >
             Browse through a collection of available manga titles, ready for you
             to explore anytime.
@@ -160,7 +160,7 @@ const Library = () => {
                         setPage(1);
                         setIsGenreModalOpen(false);
                       }}
-                      className={`px-3 py-2 rounded text-sm ${
+                      className={`px-3 py-2 rounded text-sm w-full whitespace-normal break-words text-center ${
                         genre === selectedGenre
                           ? "bg-[var(--primary)] text-white"
                           : "bg-[var(--border)] text-gray-200 hover:bg-[var(--primary)] transition-colors duration-300"

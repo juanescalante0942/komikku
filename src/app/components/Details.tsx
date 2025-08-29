@@ -7,6 +7,7 @@ import { Heart, Eye } from "lucide-react";
 import { get, set, del } from "idb-keyval";
 
 import { motion } from "framer-motion";
+import { toast } from "react-toastify";
 
 import CircleProgress from "../components/CircleProgress";
 
@@ -137,6 +138,7 @@ const Details = () => {
 
     if (isFavorite) {
       await del(`favorite-${manga.id}`);
+      toast.error("Removed from favorites");
       setIsFavorite(false);
     } else {
       await set(`favorite-${manga.id}`, {
@@ -145,6 +147,7 @@ const Details = () => {
         imageUrl: manga.imageUrl,
         author: manga.author,
       });
+      toast.success("Added to favorites");
       setIsFavorite(true);
     }
   };

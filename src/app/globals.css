@@ -1,10 +1,5 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 html {
   scroll-behavior: smooth;
 }
@@ -16,24 +11,22 @@ html {
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* Background — subtle zinc gradient with depth */
-    --background: linear-gradient(#18181b 0%, #1e1e20 70%, #2d2d30 100%);
+:root {
+  /* Background — subtle zinc gradient with depth */
+  --background: linear-gradient(#18181b 0%, #1e1e20 70%, #2d2d30 100%);
 
-    /* Text — off-white for softer contrast */
-    --foreground: #f4f4f5; /* zinc-50 */
+  /* Text — off-white for softer contrast */
+  --foreground: #f4f4f5; /* zinc-50 */
 
-    --primary: #b91c1c;
+  --primary: #b91c1c;
 
-    --secondary: #fbbf24; /* amber-400 */
+  --secondary: #fbbf24; /* amber-400 */
 
-    /* Muted text — softer zinc tone */
-    --muted: #a1a1aa; /* zinc-400 */
+  /* Muted text — softer zinc tone */
+  --muted: #a1a1aa; /* zinc-400 */
 
-    /* Optional: borders/dividers */
-    --border: #3f3f46; /* zinc-700 */
-  }
+  /* Optional: borders/dividers */
+  --border: #3f3f46; /* zinc-700 */
 }
 
 body {
