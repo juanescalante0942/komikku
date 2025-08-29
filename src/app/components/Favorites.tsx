@@ -95,9 +95,22 @@ export default function FavoritesPage() {
               </span>
             </motion.p>
           </div>
-          <p className="text-gray-400 mx-auto">
-            No favorites yet. Add some from the manga page!
-          </p>
+          <div className="flex flex-col items-center justify-center text-center py-12 px-6">
+            <Heart className="w-12 h-12 text-[var(--primary)] mb-4 animate-bounce" />
+            <h2 className="text-xl font-semibold text-white mb-2">
+              No favorites yet
+            </h2>
+            <p className="text-gray-400 max-w-sm mb-4">
+              Looks like your shelf is empty. Explore the manga library and add
+              your favorites to keep them here!
+            </p>
+            <Link
+              href="/library"
+              className="inline-block bg-[var(--secondary)] text-black px-6 py-2.5 rounded-lg transition-all shadow-md hover:shadow-lg"
+            >
+              Browse Manga
+            </Link>
+          </div>
         </div>
       </section>
     );

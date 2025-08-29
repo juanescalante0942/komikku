@@ -142,11 +142,11 @@ export default function MangAI() {
         {/* Empty State (before search) */}
         {!loading && !data && !err && (
           <div className="mt-20 flex flex-col items-center justify-center text-center text-gray-400">
-            <Search className="w-12 h-12 mb-3 opacity-60" />
-            <p className="text-base sm:text-lg md:text-xl">
+            <Search className="w-12 h-12 mb-3 text-[var(--primary)]" />
+            <h2 className="text-xl font-semibold text-white mb-2">
               Start by typing mangas you like or what you&apos;re looking for.
-            </p>
-            <p className="text-sm sm:text-base mt-1 opacity-70">
+            </h2>
+            <p className="text-sm sm:text-base opacity-70">
               MangAI will recommend titles for you.
             </p>
           </div>
