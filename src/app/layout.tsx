@@ -22,7 +22,7 @@ export const metadata = {
   description:
     "Discover and read your favorite manga online. Browse by genre, author, and popularity.",
   icons: {
-    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+    icon: "/favicon.ico",
   },
 };
 
