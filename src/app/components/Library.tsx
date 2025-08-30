@@ -151,7 +151,12 @@ const Library = () => {
                   Select a Genre
                 </h3>
 
-                <div className="grid grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto p-2">
+                <div
+                  className="grid grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto scroll-smooth p-2"
+                  style={{ overscrollBehavior: "contain" }}
+                  tabIndex={0}
+                  onWheel={(e) => e.stopPropagation()}
+                >
                   {genreList.map((genre) => (
                     <button
                       key={genre}
