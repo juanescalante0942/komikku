@@ -152,10 +152,14 @@ const Library = () => {
                 </h3>
 
                 <div
-                  className="grid grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto scroll-smooth p-2"
-                  style={{ overscrollBehavior: "contain" }}
+                  className="grid grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto scroll-smooth p-2 touch-pan-y"
+                  style={{
+                    overscrollBehavior: "contain",
+                    WebkitOverflowScrolling: "touch",
+                  }}
                   tabIndex={0}
                   onWheel={(e) => e.stopPropagation()}
+                  onTouchMove={(e) => e.stopPropagation()}
                 >
                   {genreList.map((genre) => (
                     <button
