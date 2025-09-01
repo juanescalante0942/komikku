@@ -5,6 +5,8 @@ import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 
+import { motion } from "framer-motion";
+
 type Chapter = {
   name: string;
   chapter: string;
@@ -65,11 +67,58 @@ const Search = () => {
         </h1>
 
         {loading ? (
-          <p className="text-gray-400">Searching manga database...</p>
-        ) : results.length === 0 ? (
-          <p className="text-gray-500">No results found.</p>
-        ) : (
+          // Skeleton Loader
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-4">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div
+                key={i}
+                className="animate-pulse relative rounded-lg overflow-hidden shadow-md"
+              >
+                {/* Image placeholder */}
+                <div className="aspect-[2/3] w-full bg-zinc-800" />
+
+                {/* Overlay text placeholders */}
+                <div className="absolute bottom-0 left-0 p-4 w-full space-y-2">
+                  <div className="h-4 bg-zinc-700 rounded w-3/4" />
+                  <div className="h-3 bg-zinc-700 rounded w-1/2" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : results.length === 0 ? (
+          // No Results Found
+          <div className="flex flex-col items-center justify-center text-center py-20">
+            <Image
+              src="/no-results.svg" // optional placeholder image
+              alt="No results"
+              width={180}
+              height={180}
+              className="mb-6 opacity-80"
+            />
+            <h2 className="text-xl font-semibold text-white mb-2">
+              No results found
+            </h2>
+            <p className="text-gray-400 max-w-md">
+              We couldn’t find anything for{" "}
+              <span className="text-[var(--secondary)]">
+                &quot;{decodeURIComponent(query)}&quot;
+              </span>
+              . Try searching with different keywords.
+            </p>
+          </div>
+        ) : (
+          <motion.div
+            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{
+              opacity: 1,
+              y: 0,
+              transition: {
+                duration: 0.3,
+                ease: "easeOut",
+              },
+            }}
+          >
             {results.map((manga) => (
               <Link
                 href={`/manga/${manga.id}`}
@@ -97,7 +146,7 @@ const Search = () => {
                 </div>
               </Link>
             ))}
-          </div>
+          </motion.div>
         )}
       </div>
     </section>

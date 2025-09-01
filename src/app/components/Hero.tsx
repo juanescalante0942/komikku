@@ -2,7 +2,7 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { BookOpen } from "lucide-react";
+import { BookOpen, Heart } from "lucide-react";
 
 import Carousel from "../components/Carousel";
 import Updates from "../components/Updates";
@@ -105,13 +105,24 @@ const Hero = () => {
                 easy browsing by genre, and a favorites system to save your
                 progress, exploring manga has never felt this effortless.
               </div>{" "}
-              <button
-                onClick={() => router.push("/library")}
-                className="group flex items-center justify-center gap-2 bg-[var(--primary)] text-[var(--foreground)] py-4 px-6 rounded-lg transition-transform duration-300 hover:scale-[1.02] hover:shadow-lg"
-              >
-                <BookOpen className="w-5 h-5 transition-transform duration-300 group-hover:-rotate-12" />
-                Start Reading Now!
-              </button>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <button
+                  onClick={() => router.push("/library")}
+                  className="group flex items-center justify-center gap-2 bg-[var(--primary)] text-[var(--foreground)] py-4 px-6 rounded-lg transition-transform duration-300 hover:scale-[1.02] hover:shadow-lg"
+                >
+                  <BookOpen className="w-5 h-5 transition-transform duration-300 group-hover:-rotate-12" />
+                  Start Reading Now!
+                </button>
+                <button
+                  onClick={() =>
+                    window.open("https://www.buymeacoffee.com/juandev_")
+                  }
+                  className="group flex items-center justify-center gap-2 bg-[var(--secondary)] text-[#18181b] py-4 px-6 rounded-lg transition-transform duration-300 hover:scale-[1.02] hover:shadow-lg"
+                >
+                  <Heart className="w-5 h-5 transition-transform duration-300 group-hover:-rotate-12" />
+                  Support Me
+                </button>
+              </div>
             </motion.div>
           </div>
         </div>
