@@ -88,16 +88,6 @@ const Search = () => {
         ) : results.length === 0 ? (
           // No Results Found
           <div className="flex flex-col items-center justify-center text-center py-20">
-            <Image
-              src="/no-results.svg" // optional placeholder image
-              alt="No results"
-              width={180}
-              height={180}
-              className="mb-6 opacity-80"
-            />
-            <h2 className="text-xl font-semibold text-white mb-2">
-              No results found
-            </h2>
             <p className="text-gray-400 max-w-md">
               We couldn’t find anything for{" "}
               <span className="text-[var(--secondary)]">
