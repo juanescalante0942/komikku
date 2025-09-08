@@ -3,7 +3,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, Eye } from "lucide-react";
+import { Heart, Eye, Share } from "lucide-react";
 import { get, set, del } from "idb-keyval";
 
 import { motion } from "framer-motion";
@@ -192,6 +192,7 @@ const Details = () => {
                 <div className="h-7 bg-zinc-700 rounded-lg w-1/8" />
                 <div className="h-7 bg-zinc-700 rounded-lg w-1/8" />
               </div>
+              <div className="h-10 mt-6 bg-zinc-700 rounded-lg w-1/8" />
             </div>
           </div>
 
@@ -330,6 +331,18 @@ const Details = () => {
                   </span>
                 ))}
               </div>
+            </div>
+            <div className="flex mt-4">
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(window.location.href);
+                  toast.info("Link copied to clipboard");
+                }}
+                className="group inline-flex items-center bg-[var(--border)] hover:bg-[var(--primary)] text-white rounded-lg px-10 py-2 gap-2 transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+              >
+                <Share className="w-5 h-5 text-white transition-transform duration-300 group-hover:-rotate-12" />
+                <span className="font-medium">Share</span>
+              </button>
             </div>
           </motion.div>
         </div>
