@@ -1,11 +1,10 @@
 "use client";
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
+import { BookOpen, Heart, House } from "lucide-react";
 
-type NavbarProps = {
-  navOpen: boolean;
-};
-
-const Navbar = ({ navOpen }: NavbarProps) => {
+const Navbar = () => {
+  const pathname = usePathname();
   useEffect(() => {
     const observerOptions = {
       root: null,
@@ -42,33 +41,33 @@ const Navbar = ({ navOpen }: NavbarProps) => {
     {
       label: "Home",
       link: "/",
-      className: "nav-link",
+      icon: House,
     },
     {
       label: "Library",
       link: "/library",
-      className: "nav-link",
-    },
-    {
-      label: "MangAI",
-      link: "/mangai",
-      className: "nav-link",
+      icon: BookOpen,
     },
     {
       label: "Favorites",
       link: "/favorites",
-      className: "nav-link",
+      icon: Heart,
     },
   ];
 
   return (
-    <nav className={"navbar gap-2 " + (navOpen ? "active" : "")}>
-      {navItems.map(({ label, link, className }, key) => (
-        <a key={key} href={link} className={className}>
-          {label}
+    <nav className="navbar" aria-label="Main navigation">
+      {navItems.map(({ label, link, icon: Icon }) => (
+        <a
+          key={link}
+          href={link}
+          className={`nav-link ${pathname === link ? "active" : ""}`}
+          aria-current={pathname === link ? "page" : undefined}
+        >
+          <Icon aria-hidden="true" />
+          <span>{label}</span>
         </a>
       ))}
-      <div className="active-box"></div>
     </nav>
   );
 };

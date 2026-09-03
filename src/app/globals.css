@@ -12,21 +12,24 @@ html {
 }
 
 :root {
-  /* Background — subtle zinc gradient with depth */
-  --background: linear-gradient(#18181b 0%, #1e1e20 70%, #2d2d30 100%);
+  --background: #0c0c0f;
 
   /* Text — off-white for softer contrast */
   --foreground: #f4f4f5; /* zinc-50 */
 
-  --primary: #b91c1c;
+  /* Komikku red remains reserved for brand and danger states. */
+  --primary: #c24141;
 
-  --secondary: #fbbf24; /* amber-400 */
+  --secondary: #f4f4f5;
 
   /* Muted text — softer zinc tone */
-  --muted: #a1a1aa; /* zinc-400 */
+  --muted: #a0a0a8;
 
-  /* Optional: borders/dividers */
-  --border: #3f3f46; /* zinc-700 */
+  --tertiary: #8a8a92;
+  --surface-faint: #18181b;
+  --surface: #1e1e22;
+  --border: #2a2a30;
+  --border-strong: #3a3a42;
 }
 
 body {
@@ -34,6 +37,12 @@ body {
   background: var(--background);
   color: var(--foreground);
   overflow-x: hidden;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--foreground);
+  color: var(--background);
 }
 
 body::before {
@@ -56,24 +65,62 @@ body::before {
 }
 
 .navbar {
-  @apply absolute top-full mt-2 right-0 min-w-40 p-2 backdrop-blur-2xl md:backdrop-blur-none rounded-lg ring-inset scale-90 isolate opacity-0 invisible transition-all md:bg-zinc-500/0 md:static md:flex md:items-center md:mt-0 md:opacity-100 md:visible;
-}
-
-.navbar.active {
-  @apply opacity-100 scale-100 blur-none visible;
+  @apply fixed top-5 left-1/2 z-40 flex -translate-x-1/2 items-center gap-1;
 }
 
 .nav-link {
-  @apply relative grid items-center h-10 px-4 text-lg font-medium tracking-wide text-zinc-50;
+  @apply relative flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-base font-medium text-[var(--muted)] transition-colors;
 }
 
-.nav-link::after {
+.nav-link svg {
+  @apply h-4 w-4;
+}
+
+.nav-link:hover {
+  @apply bg-[var(--surface)] text-[var(--foreground)];
+}
+
+.nav-link.active {
+  @apply text-[var(--foreground)];
+}
+
+.nav-link.active::after {
   content: "";
-  @apply absolute left-0 bottom-0 w-0 h-0.5 bg-zinc-50 transition-all duration-300;
+  @apply absolute bottom-1 h-0.5 w-4 rounded-full bg-[var(--foreground)];
 }
 
-.nav-link:hover::after {
-  width: 100%;
+.search-trigger {
+  @apply flex h-10 items-center gap-2 rounded-lg border border-[var(--foreground)]/10 bg-[var(--background)]/20 px-3 text-sm shadow-[inset_0_1px_0_rgba(244,244,245,0.08)] backdrop-blur-xl transition-colors hover:border-[var(--foreground)]/20 hover:bg-[var(--foreground)]/10 active:scale-95;
+}
+
+.search-trigger kbd {
+  @apply rounded border border-[var(--border-strong)] px-1.5 py-0.5 text-[11px] font-medium text-[var(--muted)];
+}
+
+.search-label {
+  @apply hidden text-[var(--foreground)] sm:inline;
+}
+
+@media (max-width: 767px) {
+  body {
+    padding-bottom: 5.5rem;
+  }
+
+  .navbar {
+    @apply fixed top-auto bottom-0 left-0 z-50 w-full translate-x-0 justify-around gap-0 border-t border-[var(--foreground)]/10 bg-[var(--background)]/45 px-2 pb-[env(safe-area-inset-bottom)] pt-2 shadow-[inset_0_1px_0_rgba(244,244,245,0.08)] backdrop-blur-xl;
+  }
+
+  .nav-link {
+    @apply min-w-16 flex-col gap-1 px-2 py-1.5 text-[11px];
+  }
+
+  .nav-link svg {
+    @apply h-5 w-5;
+  }
+
+  .nav-link.active::after {
+    @apply bottom-0;
+  }
 }
 
 .container {
@@ -90,15 +137,39 @@ body::before {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--border); /* zinc-900 background */
+  background: var(--surface-faint);
   border-radius: 8px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--muted); /* zinc-700 */
+  background: var(--border-strong);
   border-radius: 8px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--muted); /* zinc-600 on hover */
+  background: var(--muted);
+}
+
+/* Legacy utility colors are remapped here while component markup is migrated. */
+.text-amber-400, .text-yellow-400, .text-emerald-400,
+.text-yellow-500, .text-amber-500 {
+  color: var(--secondary) !important;
+}
+
+.bg-amber-400, .bg-yellow-400, .bg-emerald-400,
+.bg-yellow-500, .bg-amber-500 {
+  background-color: var(--secondary) !important;
+  color: var(--background) !important;
+}
+
+.bg-red-50 {
+  background-color: var(--surface-faint) !important;
+}
+
+.border-red-200 {
+  border-color: var(--border-strong) !important;
+}
+
+.text-red-500, .text-red-600 {
+  color: var(--primary) !important;
 }

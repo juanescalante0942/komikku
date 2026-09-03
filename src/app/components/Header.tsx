@@ -21,7 +21,6 @@ type AuthorResult = {
 
 const Header = () => {
   const [mounted, setMounted] = useState(false);
-  const [navOpen, setNavOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -205,7 +204,7 @@ const Header = () => {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 w-full h-20 flex items-center z-40 bg-gradient-to-b from-zinc-900 to-zinc-900/0 transition-transform duration-300 ${
+        className={`fixed top-0 left-0 w-full h-20 flex items-center z-40 bg-gradient-to-b from-[var(--background)]/55 to-transparent shadow-[inset_0_1px_0_rgba(244,244,245,0.06)] backdrop-blur-[2px] transition-transform duration-300 ${
           mounted && hidden ? "-translate-y-full" : "translate-y-0"
         }`}
       >
@@ -224,29 +223,21 @@ const Header = () => {
 
           {/* Right controls */}
           <div className="flex items-center gap-2">
-            {/* Menu button */}
-            <button
-              className="menu-btn"
-              onClick={() => setNavOpen((prev) => !prev)}
-            >
-              <span className="material-symbols-rounded">
-                {navOpen ? "close" : "menu"}
-              </span>
-            </button>
-
-            <Navbar navOpen={navOpen} />
             {/* Search button */}
             <button
               onClick={() => setSearchOpen(true)}
-              className="flex items-center justify-center w-10 h-10 rounded-xl ring-inset ring-1 ring-zinc-50/[0.02] backdrop-blur-lg hover:bg-zinc-50/15 transition-[transform,background-color] active:scale-95"
+              aria-label="Search manga"
+              className="search-trigger"
             >
-              <span className="material-symbols-rounded text-white">
-                search
-              </span>
+              <span className="material-symbols-rounded text-[var(--muted)]">search</span>
+              <span className="search-label">Search</span>
+              <kbd>Ctrl K</kbd>
             </button>
           </div>
         </div>
       </header>
+
+      <Navbar />
 
       {/* Search overlay */}
       <AnimatePresence>
