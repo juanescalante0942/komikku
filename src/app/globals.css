@@ -65,7 +65,14 @@ body::before {
 }
 
 .navbar {
-  @apply fixed top-5 left-1/2 z-40 flex -translate-x-1/2 items-center gap-1;
+  @apply fixed top-5 left-1/2 z-40 flex -translate-x-1/2 items-center gap-1 transition-[translate,opacity] duration-300;
+}
+
+@media (min-width: 768px) {
+  .navbar.hidden-up {
+    translate: -50% -300%;
+    opacity: 0;
+  }
 }
 
 .nav-link {

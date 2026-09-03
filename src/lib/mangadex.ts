@@ -21,6 +21,7 @@ export type NormalizedManga = {
   authorId?: string;
   authors: string;
   status: string;
+  year?: number;
   lastUpdated: string;
   genres: string[];
 };
@@ -87,6 +88,7 @@ export function normalizeManga(manga: MangaDexEntity): NormalizedManga {
     authorId: (manga.relationships || []).find((item) => item.type === "author")?.id,
     authors: authors.join(", ") || "Unknown",
     status: (attributes.status as string) || "unknown",
+    year: attributes.year as number | undefined,
     lastUpdated: (attributes.updatedAt as string) || (attributes.createdAt as string) || "",
     genres,
   };

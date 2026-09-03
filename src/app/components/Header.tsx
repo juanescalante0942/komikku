@@ -237,7 +237,7 @@ const Header = () => {
         </div>
       </header>
 
-      <Navbar />
+      <Navbar hidden={mounted && hidden} />
 
       {/* Search overlay */}
       <AnimatePresence>
@@ -291,7 +291,7 @@ const Header = () => {
               {(searchLoading || searchResults.length > 0 || authorResults.length > 0) && (
                 <div className="mt-2 overflow-hidden rounded-lg border border-[var(--border)] bg-zinc-900 shadow-xl">
                   {searchLoading && (
-                    <p className="px-4 py-3 text-sm text-zinc-400">Searching MangaDex...</p>
+                    <p className="px-4 py-3 text-sm text-zinc-400">Searching...</p>
                   )}
                   {!searchLoading && searchResults.length > 0 && (
                     <div className="border-b border-zinc-800 pb-2">
