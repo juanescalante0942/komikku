@@ -2,7 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ["gomanga-api.vercel.app"],
+    remotePatterns: [
+      { protocol: "https", hostname: "uploads.mangadex.org" },
+      { protocol: "https", hostname: "*.mangadex.network" },
+    ],
     unoptimized: true,
   },
 };

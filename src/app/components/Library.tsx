@@ -3,19 +3,21 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { normalizeManga, proxyUrl } from "../../lib/mangadex";
 
 type Manga = {
   id: string;
   title: string;
   image: string;
-  description: string;
-  latestChapter?: string;
 };
+
+type Tag = { id: string; name: string };
 
 const Library = () => {
   const [mangaList, setMangaList] = useState<Manga[]>([]);
-  const [genreList, setGenreList] = useState<string[]>([]);
+  const [genreList, setGenreList] = useState<Tag[]>([]);
   const [selectedGenre, setSelectedGenre] = useState<string>("All");
+  const [selectedTagId, setSelectedTagId] = useState<string | null>(null);
   const [isGenreModalOpen, setIsGenreModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -25,10 +27,18 @@ const Library = () => {
   useEffect(() => {
     const fetchGenres = async () => {
       try {
-        const res = await fetch("/api/proxy?url=/api/genre");
+        const res = await fetch(proxyUrl("/manga/tag"));
         const data = await res.json();
-        if (Array.isArray(data.genre)) {
-          setGenreList(data.genre);
+        if (Array.isArray(data.data)) {
+          setGenreList(
+            data.data
+              .map((tag: { id: string; attributes?: { name?: Record<string, string> } }) => ({
+                id: tag.id,
+                name: tag.attributes?.name?.en || Object.values(tag.attributes?.name || {})[0] || "",
+              }))
+              .filter((tag: Tag) => tag.name)
+              .sort((a: Tag, b: Tag) => a.name.localeCompare(b.name))
+          );
         }
       } catch (error) {
         console.error("Failed to fetch genres:", error);
@@ -42,16 +52,23 @@ const Library = () => {
     const fetchManga = async () => {
       try {
         setLoading(true);
-        const res = await fetch(
-          `/api/proxy?url=/api/genre/${selectedGenre.toLowerCase()}/${page}`
-        );
+        const params = new URLSearchParams({
+          limit: "24",
+          offset: String((page - 1) * 24),
+          "order[latestUploadedChapter]": "desc",
+        });
+        params.append("contentRating[]", "safe");
+        params.append("availableTranslatedLanguage[]", "en");
+        params.append("includes[]", "cover_art");
+        params.append("includes[]", "author");
+        if (selectedTagId) params.append("includedTags[]", selectedTagId);
+        const res = await fetch(proxyUrl(`/manga?${params.toString()}`));
         const data = await res.json();
-        setMangaList(data.manga || []);
-        if (Array.isArray(data.pagination)) {
-          setLastPage(data.pagination[data.pagination.length - 1]);
-        } else {
-          setLastPage(1);
-        }
+        const normalized = Array.isArray(data.data)
+          ? data.data.map((item: Parameters<typeof normalizeManga>[0]) => normalizeManga(item))
+          : [];
+        setMangaList(normalized);
+        setLastPage(Math.max(1, Math.ceil((data.total || normalized.length) / 24)));
       } catch (error) {
         console.error("Failed to fetch manga:", error);
       } finally {
@@ -59,19 +76,7 @@ const Library = () => {
       }
     };
     fetchManga();
-  }, [selectedGenre, page]);
-
-  const extractChapterNumber = (chapterStr?: string): number => {
-    if (!chapterStr) return -1;
-    const match = chapterStr.match(/(\d+(\.\d+)?)/);
-    return match ? parseFloat(match[0]) : -1;
-  };
-
-  const sortedMangaList = [...mangaList].sort((a, b) => {
-    const numA = extractChapterNumber(a.latestChapter);
-    const numB = extractChapterNumber(b.latestChapter);
-    return numB - numA;
-  });
+  }, [selectedTagId, page]);
 
   return (
     <section className="pt-25 lg:pt-28">
@@ -161,21 +166,22 @@ const Library = () => {
                   onWheel={(e) => e.stopPropagation()}
                   onTouchMove={(e) => e.stopPropagation()}
                 >
-                  {genreList.map((genre) => (
+                  {[{ id: "", name: "All" }, ...genreList].map((genre) => (
                     <button
-                      key={genre}
+                      key={genre.id || genre.name}
                       onClick={() => {
-                        setSelectedGenre(genre);
+                        setSelectedGenre(genre.name);
+                        setSelectedTagId(genre.id || null);
                         setPage(1);
                         setIsGenreModalOpen(false);
                       }}
                       className={`px-3 py-2 rounded text-sm w-full whitespace-normal break-words text-center ${
-                        genre === selectedGenre
+                        genre.name === selectedGenre
                           ? "bg-[var(--primary)] text-white"
                           : "bg-[var(--border)] text-gray-200 hover:bg-[var(--primary)] transition-colors duration-300"
                       }`}
                     >
-                      {genre}
+                      {genre.name}
                     </button>
                   ))}
                 </div>
@@ -216,7 +222,7 @@ const Library = () => {
                 },
               }}
             >
-              {sortedMangaList.map((manga) => (
+              {mangaList.map((manga) => (
                 <Link
                   href={`/manga/${manga.id}`}
                   key={manga.id}

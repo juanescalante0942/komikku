@@ -6,6 +6,18 @@ const Footer = () => {
         <p className="text-sm text-zinc-500">
           All manga content belongs to their respective creators and publishers.
         </p>
+        <p className="text-sm text-zinc-500">
+          Manga data and reading images provided by{" "}
+          <a
+            href="https://mangadex.org"
+            target="_blank"
+            rel="noreferrer"
+            className="text-[var(--secondary)] hover:underline"
+          >
+            MangaDex
+          </a>
+          .
+        </p>
       </div>
     </footer>
   );

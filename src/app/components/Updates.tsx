@@ -3,12 +3,19 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import {
+  coverUrl,
+  mangaTitle,
+  proxyUrl,
+  relatedEntity,
+  type MangaDexEntity,
+  type MangaDexRelationship,
+} from "../../lib/mangadex";
 
 type Manga = {
   id: string;
   title: string;
   image: string;
-  description: string;
 };
 
 const Updates = () => {
@@ -18,9 +25,41 @@ const Updates = () => {
   useEffect(() => {
     const fetchLatest = async () => {
       try {
-        const res = await fetch("/api/proxy?url=/api/genre/latest/1");
+        const params = new URLSearchParams();
+        params.set("limit", "20");
+        params.set("order[publishAt]", "desc");
+        params.append("translatedLanguage[]", "en");
+        params.append("contentRating[]", "safe");
+        params.append("includes[]", "manga");
+        params.append("includes[]", "cover_art");
+        const res = await fetch(proxyUrl(`/chapter?${params.toString()}`));
         const data = await res.json();
-        setMangaList((data.manga || []).slice(0, 5));
+        const seen = new Set<string>();
+        const relatedManga = (data.data || [])
+          .map((chapter: MangaDexEntity) => relatedEntity(chapter, "manga"))
+          .filter((manga: MangaDexRelationship | undefined): manga is MangaDexRelationship => {
+            if (!manga || seen.has(manga.id)) return false;
+            seen.add(manga.id);
+            return true;
+          })
+          .slice(0, 5);
+        const mangaParams = new URLSearchParams();
+        relatedManga.forEach((manga: MangaDexRelationship) => mangaParams.append("ids[]", manga.id));
+        mangaParams.append("includes[]", "cover_art");
+        const mangaRes = await fetch(proxyUrl(`/manga?${mangaParams.toString()}`));
+        const mangaData = mangaRes.ok ? await mangaRes.json() : { data: [] };
+        const mangaById = new Map<string, MangaDexEntity>(
+          (mangaData.data || []).map((manga: MangaDexEntity) => [manga.id, manga])
+        );
+        const updates = relatedManga.map((related: MangaDexRelationship) => {
+          const manga = mangaById.get(related.id) || related;
+          return {
+            id: manga.id,
+            title: mangaTitle(manga),
+            image: coverUrl(manga),
+          };
+        });
+        setMangaList(updates);
       } catch (error) {
         console.error("Failed to fetch latest updates:", error);
       } finally {

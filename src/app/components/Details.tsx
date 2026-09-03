@@ -8,14 +8,27 @@ import { get, set, del } from "idb-keyval";
 
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
+import {
+  compareChapters,
+  fetchAllChapters,
+  normalizeManga,
+  proxyUrl,
+  relatedEntity,
+  type MangaDexRelationship,
+} from "../../lib/mangadex";
 
 import CircleProgress from "../components/CircleProgress";
 
 type Chapter = {
   chapterId: string;
+  volume: string;
+  chapter: string;
+  title: string;
   views: string;
   uploaded: string;
   timestamp: string;
+  groupName: string;
+  groupId?: string;
 };
 
 type MangaCard = {
@@ -29,12 +42,14 @@ type MangaDetails = {
   title: string;
   imageUrl: string;
   author: string;
+  authorId?: string;
   status: string;
   lastUpdated: string;
   views: string;
   genres: string[];
   rating: string;
   chapters: Chapter[];
+  description?: string;
 };
 
 const Details = () => {
@@ -51,6 +66,7 @@ const Details = () => {
   // Sorting & Pagination states
   const [sortOrder, setSortOrder] = useState<"latest" | "oldest">("latest");
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedLanguage, setSelectedLanguage] = useState("en");
   const chaptersPerPage = 10;
 
   // Recommendations
@@ -60,9 +76,22 @@ const Details = () => {
     const fetchMangaDetails = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`/api/proxy?url=/api/manga/${id}`);
-        const data = await res.json();
-        setManga(data);
+        const mangaParams = new URLSearchParams();
+        mangaParams.append("includes[]", "cover_art");
+        mangaParams.append("includes[]", "author");
+        mangaParams.append("includes[]", "artist");
+        const [mangaRes, chapters] = await Promise.all([
+          fetch(proxyUrl(`/manga/${id}?${mangaParams.toString()}`)),
+          fetchAllChapters(id, selectedLanguage),
+        ]);
+        if (!mangaRes.ok) throw new Error("MangaDex request failed");
+        const mangaData = await mangaRes.json();
+        setManga({
+          ...normalizeManga(mangaData.data),
+          views: "",
+          rating: "",
+          chapters,
+        });
       } catch (error) {
         console.error("Failed to fetch manga details:", error);
       } finally {
@@ -71,7 +100,7 @@ const Details = () => {
     };
 
     if (id) fetchMangaDetails();
-  }, [id]);
+  }, [id, selectedLanguage]);
 
   useEffect(() => {
     if (!manga) return;
@@ -92,26 +121,43 @@ const Details = () => {
   }, [manga]);
 
   useEffect(() => {
-    if (!manga || manga.genres.length === 0) return;
+    if (!manga) return;
 
     const fetchRecommendations = async () => {
       try {
-        const genre = manga.genres[0].toLowerCase();
-        const res = await fetch(`/api/proxy?url=/api/genre/${genre}/1`);
+        const res = await fetch(
+          proxyUrl(
+            `/manga/${manga.id}/recommendation?includes[]=manga&order[score]=desc&contentRating[]=safe`
+          )
+        );
         const data = await res.json();
 
-        const mangaList = Array.isArray(data.manga) ? data.manga : [];
+        const mangaList = Array.isArray(data.data) ? data.data : [];
         if (mangaList.length === 0) {
-          console.warn("No recommendations found for genre:", genre);
+          console.warn("No recommendations found");
           return;
         }
 
-        const transformedList: MangaCard[] = mangaList.map(
-          (item: { id: string; title: string; image: string }) => ({
-            id: item.id,
-            title: item.title,
-            imageUrl: item.image,
-          })
+        const recommendationEntities: MangaDexRelationship[] = mangaList
+          .map((item: Parameters<typeof relatedEntity>[0]) => relatedEntity(item, "manga"))
+          .filter(
+            (item: MangaDexRelationship | undefined): item is MangaDexRelationship =>
+              Boolean(item)
+          );
+        const recommendationIds = recommendationEntities.map((item) => item.id);
+        if (recommendationIds.length === 0) return;
+        const recommendationParams = new URLSearchParams();
+        recommendationIds.forEach((recommendationId) =>
+          recommendationParams.append("ids[]", recommendationId)
+        );
+        recommendationParams.append("includes[]", "cover_art");
+        const mangaRes = await fetch(proxyUrl(`/manga?${recommendationParams.toString()}`));
+        const mangaData = mangaRes.ok ? await mangaRes.json() : { data: [] };
+        const transformedList: MangaCard[] = (mangaData.data || []).map(
+          (item: Parameters<typeof normalizeManga>[0]) => {
+            const normalized = normalizeManga(item);
+            return { id: normalized.id, title: normalized.title, imageUrl: normalized.image };
+          }
         );
 
         const shuffled = [...transformedList].sort(() => 0.5 - Math.random());
@@ -155,9 +201,8 @@ const Details = () => {
   const sortedChapters = useMemo(() => {
     if (!manga) return [];
     return [...manga.chapters].sort((a, b) => {
-      const numA = parseFloat(a.chapterId);
-      const numB = parseFloat(b.chapterId);
-      return sortOrder === "latest" ? numB - numA : numA - numB;
+      const result = compareChapters(a, b);
+      return sortOrder === "latest" ? -result : result;
     });
   }, [manga, sortOrder]);
 
@@ -303,7 +348,16 @@ const Details = () => {
             className="w-full md:flex-1 flex-col flex gap-2 text-[var(--foreground)] mt-6"
           >
             <h1 className="text-3xl font-bold">{manga.title}</h1>
-            <p className="text-xl font-light">{manga.author || "Unknown"}</p>
+            {manga.authorId ? (
+              <Link
+                href={`/author/${manga.authorId}`}
+                className="text-xl font-light text-[var(--secondary)] hover:underline"
+              >
+                {manga.author || "Unknown"}
+              </Link>
+            ) : (
+              <p className="text-xl font-light">{manga.author || "Unknown"}</p>
+            )}
             <p className="text-md font-light">
               <strong>Status:</strong> {manga.status}
             </p>
@@ -351,9 +405,32 @@ const Details = () => {
         <div className="flex flex-col lg:flex-row gap-10">
           {/* Chapters */}
           <div className="lg:flex-[3] flex-1">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-wrap justify-between items-center gap-3 mb-4">
               <h2 className="text-2xl font-semibold">Chapters</h2>
-              <div className="relative inline-flex rounded-lg bg-zinc-800 p-1 shadow-lg hover:bg-zinc-700 transition-all">
+              <div className="flex flex-wrap items-center gap-2">
+                <label htmlFor="chapter-language" className="text-sm text-zinc-400">
+                  Language
+                </label>
+                <select
+                  id="chapter-language"
+                  value={selectedLanguage}
+                  onChange={(event) => {
+                    setSelectedLanguage(event.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="rounded-lg bg-zinc-800 px-3 py-2 text-sm text-white outline-none ring-1 ring-zinc-700 focus:ring-[var(--secondary)]"
+                >
+                  <option value="en">English</option>
+                  <option value="ja">Japanese</option>
+                  <option value="ko">Korean</option>
+                  <option value="zh">Chinese</option>
+                  <option value="es">Spanish</option>
+                  <option value="fr">French</option>
+                  <option value="de">German</option>
+                  <option value="pt-br">Portuguese (Brazil)</option>
+                  <option value="all">All languages</option>
+                </select>
+                <div className="relative inline-flex rounded-lg bg-zinc-800 p-1 shadow-lg hover:bg-zinc-700 transition-all">
                 {["latest", "oldest"].map((value) => (
                   <button
                     key={value}
@@ -381,6 +458,7 @@ const Details = () => {
                 ))}
               </div>
             </div>
+            </div>
 
             <div className="space-y-3">
               {currentChapters.map((chapter, i) => (
@@ -403,7 +481,7 @@ const Details = () => {
                     className="flex justify-between items-center bg-zinc-800 px-8 py-4 rounded-lg hover:bg-zinc-700 hover:shadow-md hover:-translate-y-0.5 shadow-lg transition-all duration-200"
                   >
                     <p className="font-bold text-lg flex flex-row items-center text-[var(--secondary)]">
-                      Chapter {chapter.chapterId}
+                      Chapter {chapter.chapter}
                     </p>
 
                     <div className="text-right text-sm text-gray-300 gap-2 flex flex-row items-end">
@@ -417,7 +495,7 @@ const Details = () => {
                       <div className="flex flex-col">
                         <div className="flex items-center gap-1 justify-end text-gray-200 font-light">
                           <Eye className="w-4 h-4 text-[var(--foreground)]" />
-                          {chapter.views}
+                          {chapter.groupName}
                         </div>
                         <p className="text-xs text-gray-500 italic">
                           {new Date(chapter.timestamp).toLocaleString("en-US", {

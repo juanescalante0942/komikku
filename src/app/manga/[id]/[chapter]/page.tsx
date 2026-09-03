@@ -7,21 +7,32 @@ import Link from "next/link";
 import { set } from "idb-keyval";
 
 import { ArrowLeft, ArrowRight, Book } from "lucide-react";
+import {
+  fetchAllChapters,
+  mangaTitle,
+  normalizeChapter,
+  proxyUrl,
+  relatedEntity,
+} from "../../../../lib/mangadex";
 
 type ChapterData = {
   title: string;
   chapter: string;
   imageUrls: string[];
+  groupName: string;
+  groupId?: string;
+  mangaId: string;
 };
 
 export default function Reader() {
   const { id, chapter } = useParams<{ id: string; chapter: string }>();
-  const chapterNum = Number.parseInt(chapter ?? "", 10);
 
   const [data, setData] = useState<ChapterData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [hasPrev, setHasPrev] = useState(false);
-  const [hasNext, setHasNext] = useState(false);
+  const [prevChapter, setPrevChapter] = useState<string | null>(null);
+  const [nextChapter, setNextChapter] = useState<string | null>(null);
+  const [externalUrl, setExternalUrl] = useState<string | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -34,53 +45,83 @@ export default function Reader() {
       try {
         setLoading(true);
         setData(null);
-        setHasPrev(false);
-        setHasNext(false);
+        setPrevChapter(null);
+        setNextChapter(null);
+        setExternalUrl(null);
+        setStatusMessage(null);
 
         const res = await fetch(
-          `/api/proxy?url=/api/manga/${encodeURIComponent(
-            id
-          )}/${encodeURIComponent(chapter)}`,
+          proxyUrl(
+            `/chapter/${encodeURIComponent(chapter)}?includes[]=manga&includes[]=scanlation_group`
+          ),
           { signal: controller.signal }
         );
 
         if (!res.ok) return;
-        const json: ChapterData | null = await res.json();
-        if (!mounted || !json?.imageUrls?.length) return;
+        const chapterJson = await res.json();
+        const entity = chapterJson?.data;
+        if (!entity) {
+          setStatusMessage("This chapter could not be found.");
+          return;
+        }
+        const attributes = entity.attributes || {};
+        const mangaRelation = relatedEntity(entity, "manga");
+        if (attributes.isUnavailable) {
+          setStatusMessage("This chapter is unavailable.");
+          return;
+        }
+        if (attributes.externalUrl) {
+          setExternalUrl(attributes.externalUrl as string);
+          return;
+        }
+        if (!mangaRelation) {
+          setStatusMessage("This chapter has no associated manga.");
+          return;
+        }
+        const atHomeRes = await fetch(
+          proxyUrl(`/at-home/server/${encodeURIComponent(chapter)}?forcePort443=true`),
+          { signal: controller.signal }
+        );
+        if (!atHomeRes.ok) {
+          setStatusMessage("MangaDex could not provide pages for this chapter.");
+          return;
+        }
+        const atHome = await atHomeRes.json();
+        const useDataSaver = !atHome.chapter?.data?.length;
+        const pageData = useDataSaver ? atHome.chapter?.dataSaver || [] : atHome.chapter.data;
+        const pagePath = useDataSaver ? "data-saver" : "data";
+        const imageUrls = pageData.map(
+          (file: string) => `${atHome.baseUrl}/${pagePath}/${atHome.chapter.hash}/${file}`
+        );
+        if (!mounted || !imageUrls.length) {
+          setStatusMessage("No readable pages are available for this chapter.");
+          return;
+        }
 
-        setData(json);
+        const normalized = normalizeChapter(entity);
+        setData({
+          title: mangaTitle(mangaRelation),
+          chapter: normalized.chapter,
+          imageUrls,
+          groupName: normalized.groupName,
+          groupId: normalized.groupId,
+          mangaId: mangaRelation.id,
+        });
 
-        const prevNum = chapterNum - 1;
-        const nextNum = chapterNum + 1;
-
-        const [prevRes, nextRes] = await Promise.all([
-          prevNum >= 1
-            ? fetch(
-                `/api/proxy?url=/api/manga/${encodeURIComponent(
-                  id
-                )}/${prevNum}`,
-                { signal: controller.signal }
-              )
-            : null,
-          fetch(
-            `/api/proxy?url=/api/manga/${encodeURIComponent(id)}/${nextNum}`,
-            { signal: controller.signal }
-          ),
-        ]);
-
+        const language = (entity.attributes?.translatedLanguage as string) || "en";
+        const chapters = await fetchAllChapters(
+          mangaRelation.id,
+          language,
+          controller.signal
+        );
         if (mounted) {
-          if (prevRes && prevRes.ok) {
-            const prevJson: ChapterData | null = await prevRes
-              .json()
-              .catch(() => null);
-            setHasPrev(!!(prevJson && prevJson.imageUrls?.length));
-          }
-          if (nextRes && nextRes.ok) {
-            const nextJson: ChapterData | null = await nextRes
-              .json()
-              .catch(() => null);
-            setHasNext(!!(nextJson && nextJson.imageUrls?.length));
-          }
+          const index = chapters.findIndex((item) => item.chapterId === chapter);
+          setPrevChapter(index > 0 ? chapters[index - 1].chapterId : null);
+          setNextChapter(
+            index >= 0 && index < chapters.length - 1
+              ? chapters[index + 1].chapterId
+              : null
+          );
         }
       } catch (err) {
         if ((err as any).name !== "AbortError") console.error(err);
@@ -94,12 +135,12 @@ export default function Reader() {
       mounted = false;
       controller.abort();
     };
-  }, [id, chapter, chapterNum]);
+  }, [id, chapter]);
 
   useEffect(() => {
-    if (!id || !chapterNum || !data) return;
+    if (!id || !chapter || !data) return;
 
-    const key = `progress-${id}-${chapterNum}`;
+    const key = `progress-${id}-${chapter}`;
     const el = document.scrollingElement || document.documentElement;
 
     let raf = 0;
@@ -136,7 +177,7 @@ export default function Reader() {
       window.removeEventListener("resize", onScrollOrResize);
       cancelAnimationFrame(raf);
     };
-  }, [id, chapterNum, data]);
+  }, [id, chapter, data]);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -168,6 +209,33 @@ export default function Reader() {
               />
             ))}
           </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (!data && (statusMessage || externalUrl)) {
+    return (
+      <section className="pt-25 lg:pt-28 relative min-h-[60vh] flex items-center justify-center">
+        <div className="bg-zinc-900/70 backdrop-blur-md border border-zinc-800 rounded-2xl p-8 text-center shadow-xl text-white">
+          <p className="text-[var(--primary)] text-xl font-semibold mb-4">
+            {externalUrl ? "This chapter is hosted externally" : "Chapter unavailable"}
+          </p>
+          <p className="text-zinc-400 mb-6">
+            {externalUrl
+              ? "Continue to the source selected by MangaDex."
+              : statusMessage}
+          </p>
+          {externalUrl && (
+            <a
+              href={externalUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-block bg-[var(--secondary)] text-black px-6 py-2.5 rounded-lg transition-all shadow-md hover:shadow-lg"
+            >
+              Open Chapter Source
+            </a>
+          )}
         </div>
       </section>
     );
@@ -219,6 +287,20 @@ export default function Reader() {
             Chapter {data.chapter}
           </div>
         </div>
+        <p className="mx-auto mb-6 max-w-5xl px-4 text-center text-xs text-zinc-400">
+          Images provided by MangaDex. Scanlation credit: {data.groupId ? (
+            <a
+              href={`https://mangadex.org/group/${data.groupId}`}
+              target="_blank"
+              rel="noreferrer"
+              className="text-[var(--secondary)] hover:underline"
+            >
+              {data.groupName}
+            </a>
+          ) : (
+            data.groupName
+          )}. Please respect the group&apos;s content removal requests.
+        </p>
         {/* Pages */}
         <div
           className="flex flex-col relative mx-auto"
@@ -243,9 +325,9 @@ export default function Reader() {
         </div>
         {/* Bottom Navigation */}
         <div className="flex justify-center gap-3 sm:gap-4 mt-10">
-          {hasPrev && (
+          {prevChapter && (
             <Link
-              href={`/manga/${id}/${chapterNum - 1}`}
+              href={`/manga/${id}/${prevChapter}`}
               className="group flex items-center gap-2 border border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white px-4 py-2 rounded-lg transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
             >
               <ArrowLeft className="w-4 h-4 transition-transform duration-300 group-hover:-rotate-12" />
@@ -261,9 +343,9 @@ export default function Reader() {
             <span>Chapters</span>
           </Link>
 
-          {hasNext && (
+          {nextChapter && (
             <Link
-              href={`/manga/${id}/${chapterNum + 1}`}
+              href={`/manga/${id}/${nextChapter}`}
               className="group flex items-center gap-2 bg-[var(--primary)] text-white px-4 py-2 rounded-lg transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
             >
               <span className="hidden sm:inline">Next</span>
