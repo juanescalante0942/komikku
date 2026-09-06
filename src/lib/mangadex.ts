@@ -43,7 +43,29 @@ export type NormalizedChapter = {
   timestamp: string;
   groupName: string;
   groupId?: string;
+  language: string;
+  languageName: string;
 };
+
+const LANGUAGE_FLAGS: Record<string, string> = {
+  en: "🇬🇧", ar: "🇸🇦", az: "🇦🇿", bg: "🇧🇬", bn: "🇧🇩", ca: "🇪🇸", cs: "🇨🇿",
+  da: "🇩🇰", de: "🇩🇪", el: "🇬🇷", es: "🇪🇸", "es-la": "🇲🇽", et: "🇪🇪",
+  fi: "🇫🇮", fil: "🇵🇭", fr: "🇫🇷", he: "🇮🇱", hi: "🇮🇳", hr: "🇭🇷", hu: "🇭🇺",
+  id: "🇮🇩", it: "🇮🇹", ja: "🇯🇵", ka: "🇬🇪", kk: "🇰🇿", ko: "🇰🇷", lt: "🇱🇹",
+  lv: "🇱🇻", mk: "🇲🇰", mn: "🇲🇳", ms: "🇲🇾", my: "🇲🇲", nl: "🇳🇱", no: "🇳🇴",
+  pl: "🇵🇱", pt: "🇵🇹", "pt-br": "🇧🇷", ro: "🇷🇴", ru: "🇷🇺", sk: "🇸🇰",
+  sl: "🇸🇮", sr: "🇷🇸", sv: "🇸🇪", th: "🇹🇭", tr: "🇹🇷", uk: "🇺🇦", uz: "🇺🇿",
+  vi: "🇻🇳", zh: "🇨🇳", "zh-hans": "🇨🇳", "zh-hant": "🇹🇼", "zh-hk": "🇭🇰",
+};
+
+export function languageFlag(code: string) {
+  return LANGUAGE_FLAGS[code] || "🌐";
+}
+
+export function languageDisplayName(code: string) {
+  if (!code) return "";
+  return new Intl.DisplayNames(["en"], { type: "language" }).of(code) || code.toUpperCase();
+}
 
 export function proxyUrl(path: string) {
   return `/api/proxy?url=${encodeURIComponent(path)}`;
@@ -107,7 +129,7 @@ export function normalizeManga(manga: MangaDexEntity): NormalizedManga {
     .filter(Boolean) as string[];
 
   const languageName = (code: string) =>
-    new Intl.DisplayNames(["en"], { type: "language" }).of(code) || code.toUpperCase();
+    languageDisplayName(code) || code.toUpperCase();
 
   return {
     id: manga.id,
@@ -137,6 +159,7 @@ export function normalizeManga(manga: MangaDexEntity): NormalizedManga {
 export function normalizeChapter(chapter: MangaDexEntity): NormalizedChapter {
   const attributes = chapter.attributes || {};
   const group = relatedEntity(chapter, "scanlation_group");
+  const language = (attributes.translatedLanguage as string) || "";
   return {
     chapterId: chapter.id,
     volume: (attributes.volume as string) || "",
@@ -147,6 +170,8 @@ export function normalizeChapter(chapter: MangaDexEntity): NormalizedChapter {
     timestamp: (attributes.publishAt as string) || (attributes.updatedAt as string) || (attributes.createdAt as string) || "",
     groupName: (group?.attributes?.name as string) || "Unknown scanlation group",
     groupId: group?.id,
+    language,
+    languageName: languageDisplayName(language),
   };
 }
 

@@ -1,16 +1,18 @@
 "use client";
-import React, { useEffect, useState, useMemo, useRef, useLayoutEffect } from "react";
+import { useEffect, useState, useMemo } from "react";
+import ReactMarkdown from "react-markdown";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { Heart, Share, BookOpen, Clock, Library as LibraryIcon, Globe, Play } from "lucide-react";
 import { get, set, del } from "idb-keyval";
 
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "react-toastify";
 import {
   compareChapters,
   fetchAllChapters,
+  languageFlag,
   normalizeManga,
   proxyUrl,
   relatedListItem,
@@ -29,6 +31,15 @@ type Chapter = {
   timestamp: string;
   groupName: string;
   groupId?: string;
+  language: string;
+  languageName: string;
+};
+
+type ChapterGroup = {
+  volume: string;
+  chapter: string;
+  title: string;
+  languages: Chapter[];
 };
 
 type MangaCard = {
@@ -78,6 +89,7 @@ const Details = () => {
   const [sortOrder, setSortOrder] = useState<"latest" | "oldest">("latest");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedLanguage, setSelectedLanguage] = useState("en");
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const chaptersPerPage = 10;
 
   // Recommendations
@@ -221,8 +233,42 @@ const Details = () => {
     });
   }, [manga, sortOrder]);
 
-  const totalPages = Math.ceil(sortedChapters.length / chaptersPerPage);
+  const allMode = selectedLanguage === "all";
+
+  const chapterGroups = useMemo(() => {
+    if (!manga) return [];
+    const map = new Map<string, ChapterGroup>();
+    for (const c of [...manga.chapters].sort(compareChapters)) {
+      const key = `${c.volume}::${c.chapter}`;
+      const existing = map.get(key);
+      if (existing) {
+        existing.languages.push(c);
+      } else {
+        map.set(key, { volume: c.volume, chapter: c.chapter, title: c.title, languages: [c] });
+      }
+    }
+    return [...map.values()];
+  }, [manga]);
+
+  const displayGroups = sortOrder === "latest" ? [...chapterGroups].reverse() : chapterGroups;
+
+  const toggleGroup = (key: string) => {
+    setExpandedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const totalPages = Math.ceil(
+    (allMode ? displayGroups.length : sortedChapters.length) / chaptersPerPage
+  );
   const currentChapters = sortedChapters.slice(
+    (currentPage - 1) * chaptersPerPage,
+    currentPage * chaptersPerPage
+  );
+  const currentGroups = displayGroups.slice(
     (currentPage - 1) * chaptersPerPage,
     currentPage * chaptersPerPage
   );
@@ -236,19 +282,6 @@ const Details = () => {
     });
     return inProgress || ascending[ascending.length - 1];
   }, [manga, chapterProgress]);
-
-  const [descExpanded, setDescExpanded] = useState(false);
-  const [descOverflow, setDescOverflow] = useState(false);
-  const descRef = useRef<HTMLParagraphElement>(null);
-
-  useLayoutEffect(() => {
-    const el = descRef.current;
-    setDescOverflow(Boolean(el && el.scrollHeight > el.clientHeight));
-  }, [manga?.description]);
-
-  useLayoutEffect(() => {
-    setDescExpanded(false);
-  }, [manga?.id]);
 
   if (loading) {
     return (
@@ -451,7 +484,6 @@ const Details = () => {
           </div>
         </motion.header>
 
-        {/* Full-width description */}
         {manga.description && (
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -460,21 +492,9 @@ const Details = () => {
             className="mb-10 border-y border-[var(--border)] py-8"
           >
             <h2 className="mb-4 text-xl font-semibold tracking-[-0.02em] text-[var(--foreground)]">Synopsis</h2>
-            <p
-              ref={descRef}
-              className={`max-w-3xl leading-relaxed text-[var(--muted)] ${descExpanded ? "" : "line-clamp-4"}`}
-            >
-              {manga.description}
-            </p>
-            {descOverflow && (
-              <button
-                onClick={() => setDescExpanded((v) => !v)}
-                aria-expanded={descExpanded}
-                className="mt-3 text-sm font-medium text-[var(--foreground)] underline underline-offset-4 transition-colors hover:text-[var(--muted)]"
-              >
-                {descExpanded ? "Show less" : "Show more"}
-              </button>
-            )}
+            <div className="manga-description text-[var(--muted)]">
+              <ReactMarkdown>{manga.description}</ReactMarkdown>
+            </div>
           </motion.div>
         )}
 
@@ -542,11 +562,118 @@ const Details = () => {
               </div>
             </div>
 
-            {currentChapters.length === 0 ? (
+            {(allMode ? currentGroups.length === 0 : currentChapters.length === 0) ? (
               <div className="flex flex-col items-center gap-3 py-20 text-center">
                 <LibraryIcon className="h-8 w-8 text-[var(--tertiary)]" />
                 <p className="text-[var(--muted)]">No chapters available in this language.</p>
               </div>
+            ) : allMode ? (
+              <ul>
+                {currentGroups.map((group, i) => {
+                  const groupKey = `${group.volume}::${group.chapter}`;
+                  const expanded = expandedGroups.has(groupKey);
+                  return (
+                    <motion.li
+                      key={groupKey}
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{
+                        opacity: 1,
+                        y: 0,
+                        transition: { delay: i * 0.04, duration: 0.35, ease },
+                      }}
+                    >
+                      <div className="border-b border-[var(--border)] transition-colors hover:bg-[var(--surface-faint)]">
+                        <button
+                          type="button"
+                          onClick={() => toggleGroup(groupKey)}
+                          aria-expanded={expanded}
+                          className="flex w-full items-center gap-5 py-5 text-left"
+                        >
+                          <span className="w-12 shrink-0 text-2xl font-semibold tracking-[-0.02em] text-[var(--tertiary)]">
+                            {group.chapter}
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-[var(--foreground)]">
+                              <span className="font-medium">
+                                {group.title ? group.title : `Chapter ${group.chapter}`}
+                              </span>
+                            </p>
+                            <p className="mt-1 text-xs text-[var(--tertiary)]">
+                              {group.languages.length}{" "}
+                              {group.languages.length === 1 ? "language" : "languages"}
+                            </p>
+                          </div>
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            aria-hidden="true"
+                            className={`h-4 w-4 shrink-0 text-[var(--tertiary)] transition-transform duration-300 ${
+                              expanded ? "rotate-180" : ""
+                            }`}
+                          >
+                            <path d="m6 9 6 6 6-6" />
+                          </svg>
+                        </button>
+                        <AnimatePresence initial={false}>
+                          {expanded && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.3, ease }}
+                              className="overflow-hidden"
+                            >
+                              <ul className="pb-4 pl-[4.25rem] pr-3">
+                                {group.languages.map((lang) => (
+                                  <li key={lang.chapterId}>
+                                    <Link
+                                      href={`/manga/${manga.id}/${lang.chapterId}`}
+                                      className="group flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-[var(--surface)]"
+                                    >
+                                      <span className="text-base leading-none" aria-hidden="true">
+                                        {languageFlag(lang.language)}
+                                      </span>
+                                      <span className="text-sm text-[var(--foreground)]">
+                                        {lang.languageName || lang.language}
+                                      </span>
+                                      <span className="ml-auto hidden max-w-[180px] truncate text-xs text-[var(--tertiary)] sm:block">
+                                        {lang.groupName}
+                                      </span>
+                                      <span className="hidden shrink-0 text-xs text-[var(--tertiary)] sm:block">
+                                        {new Date(lang.timestamp).toLocaleDateString("en-US", {
+                                          month: "short",
+                                          day: "numeric",
+                                          year: "numeric",
+                                        })}
+                                      </span>
+                                      <svg
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        aria-hidden="true"
+                                        className="h-4 w-4 shrink-0 text-[var(--tertiary)] transition-transform group-hover:translate-x-1 group-hover:text-[var(--foreground)]"
+                                      >
+                                        <path d="m9 18 6-6-6-6" />
+                                      </svg>
+                                    </Link>
+                                  </li>
+                                ))}
+                              </ul>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    </motion.li>
+                  );
+                })}
+              </ul>
             ) : (
               <ul>
                 {currentChapters.map((chapter, i) => (
@@ -575,6 +702,12 @@ const Details = () => {
                           )}
                         </p>
                         <div className="mt-1 flex items-center gap-4 text-xs text-[var(--tertiary)]">
+                          <span className="flex items-center gap-1.5">
+                            <span className="text-sm leading-none" aria-hidden="true">
+                              {languageFlag(chapter.language)}
+                            </span>
+                            <span>{chapter.languageName || chapter.language}</span>
+                          </span>
                           <span className="flex items-center gap-1">
                             <Clock className="h-3 w-3" />
                             {new Date(chapter.timestamp).toLocaleDateString("en-US", {
