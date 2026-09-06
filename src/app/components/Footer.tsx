@@ -18,6 +18,18 @@ const Footer = () => {
           </a>
           .
         </p>
+        <p className="text-sm text-zinc-500">
+          Enjoying Komikku?{" "}
+          <a
+            href="https://www.buymeacoffee.com/juandev_"
+            target="_blank"
+            rel="noreferrer"
+            className="text-[var(--secondary)] hover:underline"
+          >
+            Support the project
+          </a>
+          .
+        </p>
       </div>
     </footer>
   );

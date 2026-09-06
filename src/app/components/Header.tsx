@@ -27,11 +27,13 @@ const Header = () => {
   const [authorResults, setAuthorResults] = useState<AuthorResult[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [hidden, setHidden] = useState(false);
+  const [isMac, setIsMac] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
   useEffect(() => {
     setMounted(true);
+    setIsMac(/Mac|iPhone|iPad|iPod/i.test(navigator.platform || ""));
   }, []);
 
   useEffect(() => {
@@ -231,7 +233,7 @@ const Header = () => {
             >
               <span className="material-symbols-rounded text-[var(--muted)]">search</span>
               <span className="search-label">Search</span>
-              <kbd>Ctrl K</kbd>
+              <kbd>{isMac ? "Cmd K" : "Ctrl K"}</kbd>
             </button>
           </div>
         </div>

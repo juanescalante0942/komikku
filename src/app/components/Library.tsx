@@ -69,6 +69,8 @@ export default function Library() {
   const [draftFilters, setDraftFilters] = useState<Filters>(DEFAULT_FILTERS);
   const [view, setView] = useState<ViewMode>("grid");
   const [filterOpen, setFilterOpen] = useState(false);
+  const [recentCollapsed, setRecentCollapsed] = useState(false);
+  const [recentReady, setRecentReady] = useState(false);
   const [genresExpanded, setGenresExpanded] = useState(false);
   const [loading, setLoading] = useState(true);
   const [randomLoading, setRandomLoading] = useState(false);
@@ -166,11 +168,32 @@ export default function Library() {
   }, []);
 
   useEffect(() => {
+    setRecentCollapsed(window.localStorage.getItem("komikku-recent-collapsed") === "1");
+    setRecentReady(true);
+  }, []);
+
+  useEffect(() => {
     if (!filterOpen) return;
-    const original = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const root = document.documentElement;
+    const body = document.body;
+    const rootOriginal = root.style.overflow;
+    const bodyOriginal = body.style.overflow;
+    root.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+
+    const prevent = (event: Event) => {
+      const target = event.target as HTMLElement | null;
+      if (target && target.closest("[data-filter-scroll]")) return;
+      event.preventDefault();
+    };
+    window.addEventListener("wheel", prevent, { passive: false });
+    window.addEventListener("touchmove", prevent, { passive: false });
+
     return () => {
-      document.body.style.overflow = original;
+      root.style.overflow = rootOriginal;
+      body.style.overflow = bodyOriginal;
+      window.removeEventListener("wheel", prevent);
+      window.removeEventListener("touchmove", prevent);
     };
   }, [filterOpen]);
 
@@ -278,10 +301,28 @@ export default function Library() {
               transition={{ duration: 0.4, ease }}
               className="mb-10 border-y border-[var(--border)] py-5"
             >
-              <div className="mb-3 flex items-baseline justify-between"><h2 className="text-sm font-semibold text-[var(--foreground)]">Recently viewed</h2><span className="text-xs text-[var(--tertiary)]">On this device</span></div>
-              <div className="flex gap-3 overflow-x-auto pb-1">
-                {recentManga.map((manga) => <MiniManga key={manga.id} manga={manga} onOpen={saveRecent} />)}
+              <div className="mb-3 flex items-baseline justify-between">
+                <button
+                  onClick={() => {
+                    const next = !recentCollapsed;
+                    setRecentCollapsed(next);
+                    window.localStorage.setItem("komikku-recent-collapsed", next ? "1" : "0");
+                  }}
+                  className="group flex items-center gap-1.5 text-sm font-semibold text-[var(--foreground)]"
+                >
+                  <ChevronDown className={`h-4 w-4 text-[var(--muted)] transition-transform duration-200 ${recentCollapsed ? "-rotate-90" : ""}`} />
+                  <h2>Recently viewed</h2>
+                </button>
+                <span className="text-xs text-[var(--tertiary)]">On this device</span>
               </div>
+              {!recentCollapsed && <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, ease }}
+                className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-4 sm:gap-x-4 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-6 xl:grid-cols-8"
+              >
+                {recentManga.map((manga) => <RecentCard key={manga.id} manga={manga} onOpen={saveRecent} />)}
+              </motion.div>}
             </motion.section>
           )}
         </AnimatePresence>
@@ -352,23 +393,28 @@ export default function Library() {
       <AnimatePresence>
         {filterOpen && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-60 flex items-end bg-black/65 p-0 sm:items-center sm:justify-center sm:p-4"
+            initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
+            animate={{ opacity: 1, backdropFilter: "blur(6px)" }}
+            exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
+            transition={{ duration: 0.25, ease }}
+            className="fixed inset-0 z-60 flex items-end overflow-hidden overscroll-none bg-black/65 p-0 sm:items-center sm:justify-center sm:p-4"
             onClick={() => setFilterOpen(false)}
           >
             <motion.div
-              initial={{ y: "100%", opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: "100%", opacity: 0 }}
-              transition={{ duration: 0.35, ease }}
-              className="flex max-h-[88vh] w-full flex-col overflow-hidden rounded-t-2xl border border-[var(--border)] bg-[var(--surface)] shadow-2xl sm:max-w-2xl sm:rounded-2xl"
+              initial={{ y: "100%", opacity: 0, scale: 0.98 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ y: "100%", opacity: 0, scale: 0.98 }}
+              transition={{ type: "spring", stiffness: 320, damping: 30 }}
+              className="flex h-[88vh] max-h-[720px] w-full flex-col overflow-hidden rounded-t-2xl border border-[var(--border)] bg-[var(--surface)] shadow-2xl sm:rounded-2xl sm:max-w-2xl"
               onClick={(event) => event.stopPropagation()}
             >
               <div className="flex items-center justify-between border-b border-[var(--border)] px-5 pb-4 pt-5"><div><h2 className="text-xl font-semibold">Refine library</h2><p className="mt-1 text-sm text-[var(--muted)]">Only titles with English chapters are shown.</p></div><button onClick={() => setFilterOpen(false)} className="grid h-9 w-9 place-items-center rounded-lg text-[var(--muted)] hover:bg-[var(--surface-faint)]" aria-label="Close filters"><X className="h-5 w-5" /></button></div>
-              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5">
+              <div
+                data-filter-scroll
+                onWheel={(event) => event.stopPropagation()}
+                onTouchMove={(event) => event.stopPropagation()}
+                className="min-h-0 flex-1 overflow-y-scroll overscroll-contain px-5 py-5"
+              >
                 <FilterGroup label="Status" values={["ongoing", "completed", "hiatus", "cancelled"]} selected={draftFilters.status} onChange={(value) => setDraftFilters((current) => ({ ...current, status: updateList(current.status, value) }))} />
                 <FilterGroup label="Demographic" values={["shounen", "shoujo", "seinen", "josei"]} selected={draftFilters.demographic} onChange={(value) => setDraftFilters((current) => ({ ...current, demographic: updateList(current.demographic, value) }))} />
                 <GenreField genres={genreList} selected={draftFilters.tags} expanded={genresExpanded} onToggle={setGenresExpanded} onChange={(id) => setDraftFilters((current) => ({ ...current, tags: updateList(current.tags, id) }))} />
@@ -393,14 +439,53 @@ function FilterGroup({ label, values, selected, onChange }: { label: string; val
 
 function GenreField({ genres, selected, expanded, onToggle, onChange }: { genres: Tag[]; selected: string[]; expanded: boolean; onToggle: (value: boolean) => void; onChange: (id: string) => void }) {
   const collapsedCount = 8;
-  const visible = expanded ? genres : genres.slice(0, collapsedCount);
+  const [search, setSearch] = useState("");
+  const matchingGenres = search.trim()
+    ? genres.filter((genre) => genre.name.toLowerCase().includes(search.trim().toLowerCase()))
+    : genres;
+  const visible = search.trim() || expanded ? matchingGenres : matchingGenres.slice(0, collapsedCount);
   return (
     <div className="mt-6">
       <h3 className="text-sm font-semibold">Genres</h3>
-      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
-        {visible.map((genre) => <Toggle key={genre.id} label={genre.name} selected={selected.includes(genre.id)} onClick={() => onChange(genre.id)} />)}
+      <div className="mt-3 flex h-10 items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-faint)] px-3 focus-within:border-[var(--border-strong)]">
+        <Search className="h-4 w-4 shrink-0 text-[var(--tertiary)]" />
+        <input
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Search genres"
+          aria-label="Search genres"
+          className="min-w-0 flex-1 bg-transparent text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--tertiary)]"
+        />
+        {search && (
+          <button onClick={() => setSearch("")} aria-label="Clear genre search">
+            <X className="h-4 w-4 text-[var(--muted)]" />
+          </button>
+        )}
       </div>
-      {genres.length > collapsedCount && (
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <AnimatePresence>
+          {visible.map((genre, i) => (
+            <motion.div
+              key={genre.id}
+              layout
+              initial={{ opacity: 0, y: 8 }}
+              animate={{
+                opacity: 1,
+                y: 0,
+                transition: { duration: 0.2, ease, delay: Math.min(i * 0.02, 0.2) },
+              }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.15, ease }}
+            >
+              <Toggle label={genre.name} selected={selected.includes(genre.id)} onClick={() => onChange(genre.id)} />
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+      {search.trim() && visible.length === 0 && (
+        <p className="mt-3 text-sm text-[var(--tertiary)]">No genres match “{search}”.</p>
+      )}
+      {!search.trim() && genres.length > collapsedCount && (
         <button onClick={() => onToggle(!expanded)} className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-[var(--border)] text-sm text-[var(--muted)] transition hover:border-[var(--border-strong)] hover:text-[var(--foreground)]">
           {expanded ? "Show fewer" : `Show all ${genres.length} genres`}
           <motion.span animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.25, ease }}><ChevronDown className="h-4 w-4" /></motion.span>
@@ -426,8 +511,9 @@ function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }
   );
 }
 
-function MiniManga({ manga, onOpen }: { manga: NormalizedManga; onOpen: (id: string) => void }) {
-  return <Link href={`/manga/${manga.id}`} onClick={() => onOpen(manga.id)} className="group flex w-40 shrink-0 gap-2"><Image src={manga.image} alt="" width={40} height={56} className="h-14 w-10 rounded object-cover" /><span className="line-clamp-2 self-center text-xs font-medium text-[var(--muted)] group-hover:text-[var(--foreground)]">{manga.title}</span></Link>;
+function RecentCard({ manga, onOpen }: { manga: NormalizedManga; onOpen: (id: string) => void }) {
+  const meta = mangaMeta(manga);
+  return <Link href={`/manga/${manga.id}`} onClick={() => onOpen(manga.id)} className="group flex w-40 shrink-0 gap-3 sm:w-auto sm:flex-col sm:min-w-0"><div className="relative aspect-[2/3] w-16 shrink-0 overflow-hidden rounded bg-[var(--surface)] sm:w-full sm:rounded-lg"><Image src={manga.image} alt="" fill className="object-cover transition-transform duration-500 group-hover:scale-[1.04]" /><span className="absolute bottom-1.5 left-1.5 rounded bg-black/70 px-1.5 py-0.5 text-[10px] capitalize text-white">{meta.status}</span></div><div className="min-w-0 self-center sm:mt-2 sm:self-auto"><h2 className="line-clamp-2 text-xs font-semibold leading-4 text-[var(--foreground)] group-hover:underline">{manga.title}</h2><p className="mt-0.5 hidden line-clamp-1 text-xs text-[var(--muted)] sm:block">{manga.author}</p></div></Link>;
 }
 
 function MangaResults({ mangaList, view, onOpen }: { mangaList: NormalizedManga[]; view: ViewMode; onOpen: (id: string) => void }) {

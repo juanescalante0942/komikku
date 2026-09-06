@@ -20,10 +20,17 @@ export type NormalizedManga = {
   author: string;
   authorId?: string;
   authors: string;
+  artists: string;
   status: string;
   year?: number;
   lastUpdated: string;
   genres: string[];
+  originalLanguage?: string;
+  demographic?: string;
+  altTitles: string[];
+  availableLanguages: string[];
+  lastChapter?: string;
+  lastVolume?: string;
 };
 
 export type NormalizedChapter = {
@@ -63,6 +70,19 @@ export function relatedEntity(
   return entity.relationships?.find((item) => item.type === type);
 }
 
+// For a recommendation entry, MangaDex lists two `manga` relationships:
+// the source manga and the recommended manga. Return the id of the one
+// that is not the current series so "Similar" shows actual recommendations.
+export function relatedListItem(
+  entity: MangaDexEntity,
+  excludedId: string
+): string | undefined {
+  const candidate = entity.relationships?.find(
+    (item) => item.type === "manga" && item.id !== excludedId
+  );
+  return candidate?.id;
+}
+
 export function mangaTitle(manga: MangaDexEntity) {
   return localized(manga.attributes?.title, "Untitled");
 }
@@ -70,7 +90,11 @@ export function mangaTitle(manga: MangaDexEntity) {
 export function normalizeManga(manga: MangaDexEntity): NormalizedManga {
   const attributes = manga.attributes || {};
   const authors = (manga.relationships || [])
-    .filter((item) => item.type === "author" || item.type === "artist")
+    .filter((item) => item.type === "author")
+    .map((item) => item.attributes?.name as string | undefined)
+    .filter(Boolean);
+  const artists = (manga.relationships || [])
+    .filter((item) => item.type === "artist")
     .map((item) => item.attributes?.name as string | undefined)
     .filter(Boolean);
 
@@ -78,19 +102,35 @@ export function normalizeManga(manga: MangaDexEntity): NormalizedManga {
     .map((tag: MangaDexEntity) => localized(tag.attributes?.name))
     .filter(Boolean);
 
+  const altTitles = ((attributes.altTitles || []) as Record<string, string>[])
+    .map((title) => title && (title.en || Object.values(title)[0]))
+    .filter(Boolean) as string[];
+
+  const languageName = (code: string) =>
+    new Intl.DisplayNames(["en"], { type: "language" }).of(code) || code.toUpperCase();
+
   return {
     id: manga.id,
     title: mangaTitle(manga),
     image: coverUrl(manga),
     imageUrl: coverUrl(manga),
     description: localized(attributes.description, "No description available."),
-    author: authors[0] || "Unknown",
+    author: authors[0] || artists[0] || "Unknown",
     authorId: (manga.relationships || []).find((item) => item.type === "author")?.id,
     authors: authors.join(", ") || "Unknown",
+    artists: artists.join(", ") || "",
     status: (attributes.status as string) || "unknown",
     year: attributes.year as number | undefined,
     lastUpdated: (attributes.updatedAt as string) || (attributes.createdAt as string) || "",
     genres,
+    originalLanguage:
+      (attributes.originalLanguage as string) || undefined,
+    demographic: (attributes.publicationDemographic as string) || undefined,
+    altTitles,
+    availableLanguages: ((attributes.availableTranslatedLanguages as string[]) || [])
+      .map(languageName),
+    lastChapter: attributes.lastChapter as string | undefined,
+    lastVolume: attributes.lastVolume as string | undefined,
   };
 }
 

@@ -8,7 +8,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect } from "react";
 
 type MangaPick = {
-  id: string;
+  mangaId: string;
   title: string;
   image: string;
   imageChar: string;
@@ -17,42 +17,42 @@ type MangaPick = {
 
 const picks: MangaPick[] = [
   {
-    id: "jujutsu-kaisen",
+    mangaId: "c52b2ce3-7f95-469c-96b0-479524fb7a1a",
     title: "Jujutsu Kaisen",
     image: "/images/carousel/background/jjk.jpg",
     imageChar: "/images/carousel/character/jjk.png",
     titleImage: "/images/carousel/title/jjk.png",
   },
   {
-    id: "chainsaw-man",
+    mangaId: "f319d314-4310-4610-bcea-98c0128def1d",
     title: "Chainsawman",
     image: "/images/carousel/background/chainsawman.jpg",
     imageChar: "/images/carousel/character/chainsawman.png",
     titleImage: "/images/carousel/title/chainsawman.png",
   },
   {
-    id: "jojo-s-bizarre-adventure-part-3-stardust-crusaders-colored",
+    mangaId: "51f7d9fc-256e-4160-add1-ab9652f32ae1",
     title: "Jojo's Bizarre Adventure: Stardust Crusaders",
     image: "/images/carousel/background/jojo.png",
     imageChar: "/images/carousel/character/jojo.png",
     titleImage: "/images/carousel/title/jojo.png",
   },
   {
-    id: "vinland-saga",
+    mangaId: "5d1fc77e-706a-4fc5-bea8-486c9be0145d",
     title: "Vinland Saga",
     image: "/images/carousel/background/vinland.png",
     imageChar: "/images/carousel/character/vinland.png",
     titleImage: "/images/carousel/title/vinland.png",
   },
   {
-    id: "oyasumi-punpun",
+    mangaId: "4301d363-ee02-43f4-ae24-4cbf29a74830",
     title: "Oyasumi Punpun",
     image: "/images/carousel/background/punpun.jpg",
     imageChar: "/images/carousel/character/punpun.png",
     titleImage: "/images/carousel/title/punpun.png",
   },
   {
-    id: "kuroko-no-basket",
+    mangaId: "f8e41a48-5ca9-41e3-94a7-a1379a4fda62",
     title: "Kuroko's Basketball",
     image: "/images/carousel/background/kuroko.jpg",
     imageChar: "/images/carousel/character/kuroko.png",
@@ -115,9 +115,9 @@ export default function DevTopPicks() {
       <div ref={sliderRef} className="keen-slider">
         {picks.map((manga) => (
           <Link
-            href={`/manga/${manga.id}`}
-            key={manga.id}
-            className="keen-slider__slide relative w-120 h-80 flex items-center justify-center group drop-shadow-lg"
+            href={`/manga/${manga.mangaId}`}
+            key={manga.mangaId}
+            className="keen-slider__slide relative h-56 w-full flex items-center justify-center group drop-shadow-lg sm:h-72 md:h-80"
           >
             {/* Background box with blur + gradient */}
             <div className="absolute inset-0 rounded-lg overflow-hidden z-0">

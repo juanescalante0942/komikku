@@ -24,6 +24,28 @@ type ChapterData = {
   mangaId: string;
 };
 
+type ContinueEntry = {
+  mangaId: string;
+  chapterId: string;
+  chapter: string;
+};
+
+function saveContinueReading(entry: ContinueEntry) {
+  try {
+    const stored = JSON.parse(window.localStorage.getItem("komikku-continue-reading") || "[]");
+    const previous = Array.isArray(stored) ? stored : [];
+    window.localStorage.setItem(
+      "komikku-continue-reading",
+      JSON.stringify([
+        entry,
+        ...previous.filter((item) => item?.mangaId !== entry.mangaId),
+      ].slice(0, 6))
+    );
+  } catch {
+    // Reading remains available if local storage is unavailable.
+  }
+}
+
 export default function Reader() {
   const { id, chapter } = useParams<{ id: string; chapter: string }>();
 
@@ -106,6 +128,11 @@ export default function Reader() {
           groupName: normalized.groupName,
           groupId: normalized.groupId,
           mangaId: mangaRelation.id,
+        });
+        saveContinueReading({
+          mangaId: mangaRelation.id,
+          chapterId: chapter,
+          chapter: normalized.chapter,
         });
 
         const language = (entity.attributes?.translatedLanguage as string) || "en";
