@@ -307,7 +307,6 @@ export default function Library() {
         >
           <h1 className="text-4xl font-semibold tracking-[-0.03em] text-[var(--foreground)] sm:text-5xl">Library</h1>
           <p className="mt-3 max-w-2xl text-base leading-7 text-[var(--muted)]">Browse the catalog with focused controls for finding your next series.</p>
-          <Link href="/mangai" className="mt-5 inline-flex min-h-11 items-center rounded-lg border border-[var(--border-strong)] px-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--foreground)]">Not sure what to read? Ask MangAI</Link>
         </motion.header>
 
         <div className="mb-6 flex flex-wrap gap-2">

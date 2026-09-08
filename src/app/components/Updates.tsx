@@ -125,6 +125,7 @@ const Updates = () => {
       viewport={{ once: true }}
       transition={{ duration: 0.6, delay: 0.2 }}
       className="home-updates-grid"
+      data-lenis-prevent
     >
       {/* ✅ Skeleton while loading */}
       {state === "loading" &&

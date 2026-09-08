@@ -133,7 +133,7 @@ export default function ContinueReading() {
           <div className="home-section-rule" />
           <p>Pick up right where you left off.</p>
         </div>
-        <div className="home-continue-grid">
+        <div className="home-continue-grid" data-lenis-prevent>
           {items.map((item) => (
             <Link
               href={`/manga/${item.mangaId}/${item.chapterId}`}

@@ -57,7 +57,7 @@ export default function FavoritesPage() {
         </motion.header>
 
         {favorites.length === 0 ? (
-          <div className="flex max-w-xl flex-col items-start border-y border-[var(--border)] py-12">
+          <div className="mx-auto flex max-w-xl flex-col items-center border-y border-[var(--border)] py-12 text-center sm:mx-0 sm:items-start sm:text-left">
             <Heart className="mb-5 h-10 w-10 text-[var(--primary)]" />
             <h2 className="text-2xl font-semibold tracking-tight text-[var(--foreground)]">No favorites yet</h2>
             <p className="mt-3 max-w-sm leading-relaxed text-[var(--muted)]">Explore the manga library and save titles you want to find again.</p>

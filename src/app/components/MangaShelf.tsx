@@ -81,6 +81,7 @@ export default function MangaShelf({ sort, limit = DEFAULT_SHELF_SIZE }: MangaSh
       transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
       className="home-shelf-grid"
       aria-busy={state === "loading"}
+      data-lenis-prevent
     >
       {state === "loading"
         ? Array.from({ length: limit }).map((_, index) => (
