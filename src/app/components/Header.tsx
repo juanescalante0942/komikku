@@ -4,7 +4,7 @@ import Navbar from "./Navbar";
 import { useState, useEffect } from "react";
 import { useRef } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { normalizeManga, proxyUrl, type MangaDexEntity } from "../../lib/mangadex";
 
@@ -29,12 +29,51 @@ const Header = () => {
   const [hidden, setHidden] = useState(false);
   const [isMac, setIsMac] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchDialogRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     setMounted(true);
     setIsMac(/Mac|iPhone|iPad|iPod/i.test(navigator.platform || ""));
   }, []);
+
+  useEffect(() => {
+    if (!searchOpen) return;
+
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setSearchOpen(false);
+        return;
+      }
+      if (event.key !== "Tab" || !searchDialogRef.current) return;
+
+      const focusable = Array.from(
+        searchDialogRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), input:not([disabled]), a[href]'
+        )
+      );
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    window.setTimeout(() => searchInputRef.current?.focus(), 0);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      previouslyFocused?.focus();
+    };
+  }, [searchOpen]);
 
   useEffect(() => {
     if (!mounted) return; // Don't run scroll logic until after hydration
@@ -203,6 +242,8 @@ const Header = () => {
     setAuthorResults([]);
   };
 
+  if (/^\/manga\/[^/]+\/[^/]+$/.test(pathname)) return null;
+
   return (
     <>
       <header
@@ -255,6 +296,11 @@ const Header = () => {
             }}
           >
             <motion.div
+              ref={searchDialogRef}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Search manga"
+              tabIndex={-1}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -285,7 +331,8 @@ const Header = () => {
                 <button
                   type="button"
                   onClick={() => setSearchOpen(false)}
-                  className="px-4 flex items-center justify-center text-white hover:bg-zinc-800"
+                  aria-label="Close search"
+                  className="grid h-11 w-11 place-items-center text-white hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[var(--foreground)]"
                 >
                   <span className="material-symbols-rounded">close</span>
                 </button>

@@ -107,14 +107,6 @@ export default function ContinueReading() {
     return (
       <section className="home-section home-section-continue home-section-starter">
         <div className="container">
-          <Image
-            src="/images/logo.svg"
-            width={320}
-            height={72}
-            alt=""
-            aria-hidden="true"
-            className="home-starter-wordmark"
-          />
           <div className="home-section-header">
             <h2>Find the story that keeps you up.</h2>
             <div className="home-section-rule" />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -70,12 +70,15 @@ export default function Library() {
   const [view, setView] = useState<ViewMode>("grid");
   const [filterOpen, setFilterOpen] = useState(false);
   const [recentCollapsed, setRecentCollapsed] = useState(false);
-  const [recentReady, setRecentReady] = useState(false);
   const [genresExpanded, setGenresExpanded] = useState(false);
   const [loading, setLoading] = useState(true);
   const [randomLoading, setRandomLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+  const [requestError, setRequestError] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
+  const filterTriggerRef = useRef<HTMLButtonElement>(null);
+  const filterDialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const tags = searchParams.get("tags")?.split(",").filter(Boolean) || [];
@@ -116,6 +119,7 @@ export default function Library() {
     const controller = new AbortController();
     const timeout = window.setTimeout(async () => {
       setLoading(true);
+      setRequestError(false);
       try {
         const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String((page - 1) * PAGE_SIZE) });
         if (query.trim()) params.set("title", query.trim());
@@ -135,8 +139,7 @@ export default function Library() {
         setTotal(data.total || 0);
       } catch (error) {
         if ((error as { name?: string }).name !== "AbortError") {
-          setMangaList([]);
-          setTotal(0);
+          setRequestError(true);
         }
       } finally {
         if (!controller.signal.aborted) setLoading(false);
@@ -146,7 +149,7 @@ export default function Library() {
       window.clearTimeout(timeout);
       controller.abort();
     };
-  }, [query, sort, filters, page]);
+  }, [query, sort, filters, page, retryKey]);
 
   useEffect(() => {
     const ids = JSON.parse(window.localStorage.getItem("komikku-recent") || "[]") as string[];
@@ -169,7 +172,6 @@ export default function Library() {
 
   useEffect(() => {
     setRecentCollapsed(window.localStorage.getItem("komikku-recent-collapsed") === "1");
-    setRecentReady(true);
   }, []);
 
   useEffect(() => {
@@ -194,6 +196,42 @@ export default function Library() {
       body.style.overflow = bodyOriginal;
       window.removeEventListener("wheel", prevent);
       window.removeEventListener("touchmove", prevent);
+    };
+  }, [filterOpen]);
+
+  useEffect(() => {
+    if (!filterOpen) return;
+    const trigger = filterTriggerRef.current;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setFilterOpen(false);
+        return;
+      }
+      if (event.key !== "Tab" || !filterDialogRef.current) return;
+
+      const focusable = Array.from(
+        filterDialogRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), input:not([disabled]), select:not([disabled])'
+        )
+      );
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    window.setTimeout(() => filterDialogRef.current?.focus(), 0);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      trigger?.focus();
     };
   }, [filterOpen]);
 
@@ -269,6 +307,7 @@ export default function Library() {
         >
           <h1 className="text-4xl font-semibold tracking-[-0.03em] text-[var(--foreground)] sm:text-5xl">Library</h1>
           <p className="mt-3 max-w-2xl text-base leading-7 text-[var(--muted)]">Browse the catalog with focused controls for finding your next series.</p>
+          <Link href="/mangai" className="mt-5 inline-flex min-h-11 items-center rounded-lg border border-[var(--border-strong)] px-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--foreground)]">Not sure what to read? Ask MangAI</Link>
         </motion.header>
 
         <div className="mb-6 flex flex-wrap gap-2">
@@ -347,7 +386,7 @@ export default function Library() {
             </AnimatePresence>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => { setDraftFilters(filters); setGenresExpanded(false); setFilterOpen(true); }} className="relative inline-flex h-11 items-center gap-2 rounded-lg border border-[var(--border)] px-3 text-sm text-[var(--foreground)] transition hover:border-[var(--border-strong)]"><SlidersHorizontal className="h-4 w-4" />Filters{activeFilterCount > 1 && <span className="grid h-5 min-w-5 place-items-center rounded-full bg-[var(--foreground)] px-1 text-xs text-[var(--background)]">{activeFilterCount - 1}</span>}</button>
+            <button ref={filterTriggerRef} onClick={() => { setDraftFilters(filters); setGenresExpanded(false); setFilterOpen(true); }} className="relative inline-flex h-11 items-center gap-2 rounded-lg border border-[var(--border)] px-3 text-sm text-[var(--foreground)] transition hover:border-[var(--border-strong)]"><SlidersHorizontal className="h-4 w-4" />Filters{activeFilterCount > 1 && <span className="grid h-5 min-w-5 place-items-center rounded-full bg-[var(--foreground)] px-1 text-xs text-[var(--background)]">{activeFilterCount - 1}</span>}</button>
             <label className="relative"><span className="sr-only">Sort library</span><select value={sort} onChange={(event) => { const value = event.target.value as SortKey; setSort(value); setPage(1); syncUrl({ sort: value, page: 1 }); }} className="h-11 appearance-none rounded-lg border border-[var(--border)] bg-[var(--surface-faint)] py-0 pl-3 pr-9 text-sm text-[var(--foreground)] outline-none hover:border-[var(--border-strong)]">{sorts.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select><ChevronDown className="pointer-events-none absolute right-3 top-3.5 h-4 w-4 text-[var(--muted)]" /></label>
             <div className="hidden rounded-lg border border-[var(--border)] p-1 sm:flex"><button onClick={() => { setView("grid"); localStorage.setItem("komikku-library-view", "grid"); }} className={`grid h-9 w-9 place-items-center rounded transition-colors ${view === "grid" ? "bg-[var(--surface)] text-[var(--foreground)]" : "text-[var(--muted)]"}`} aria-label="Grid view"><Grid2X2 className="h-4 w-4" /></button><button onClick={() => { setView("list"); localStorage.setItem("komikku-library-view", "list"); }} className={`grid h-9 w-9 place-items-center rounded transition-colors ${view === "list" ? "bg-[var(--surface)] text-[var(--foreground)]" : "text-[var(--muted)]"}`} aria-label="List view"><List className="h-4 w-4" /></button></div>
             <motion.button
@@ -385,7 +424,7 @@ export default function Library() {
 
         <div className="mb-5 flex items-baseline justify-between"><p className="text-sm text-[var(--muted)]">{loading ? "Loading titles" : total ? `${rangeStart}-${rangeEnd} of ${total.toLocaleString()} titles` : "No titles found"}</p><p className="text-xs text-[var(--tertiary)]">{sorts.find((item) => item.value === sort)?.label}</p></div>
 
-        {loading ? <LibrarySkeleton view={view} /> : mangaList.length ? <MangaResults mangaList={mangaList} view={view} onOpen={saveRecent} /> : <EmptyState onReset={resetFilters} />}
+        {loading ? <LibrarySkeleton view={view} /> : requestError ? <div className="py-12 text-center"><p className="text-sm text-[var(--muted)]">Couldn&apos;t load titles. Check your connection and try again.</p><button type="button" onClick={() => setRetryKey((value) => value + 1)} className="mt-4 min-h-11 rounded-lg border border-[var(--border-strong)] px-4 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--surface)]">Try again</button></div> : mangaList.length ? <MangaResults mangaList={mangaList} view={view} onOpen={saveRecent} /> : <EmptyState onReset={resetFilters} />}
 
         {total > PAGE_SIZE && <nav className="mt-10 flex items-center justify-between border-t border-[var(--border)] pt-5" aria-label="Library pages"><button disabled={page === 1} onClick={() => { const next = page - 1; setPage(next); syncUrl({ page: next }); }} className="inline-flex items-center gap-2 text-sm text-[var(--muted)] disabled:opacity-30"><ArrowLeft className="h-4 w-4" />Previous</button><span className="text-sm text-[var(--muted)]">Page {page} of {lastPage}</span><button disabled={page === lastPage} onClick={() => { const next = page + 1; setPage(next); syncUrl({ page: next }); }} className="inline-flex items-center gap-2 text-sm text-[var(--muted)] disabled:opacity-30">Next<ArrowRight className="h-4 w-4" /></button></nav>}
       </div>
@@ -401,6 +440,11 @@ export default function Library() {
             onClick={() => setFilterOpen(false)}
           >
             <motion.div
+              ref={filterDialogRef}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="library-filter-title"
+              tabIndex={-1}
               initial={{ y: "100%", opacity: 0, scale: 0.98 }}
               animate={{ y: 0, opacity: 1, scale: 1 }}
               exit={{ y: "100%", opacity: 0, scale: 0.98 }}
@@ -408,7 +452,7 @@ export default function Library() {
               className="flex h-[88vh] max-h-[720px] w-full flex-col overflow-hidden rounded-t-2xl border border-[var(--border)] bg-[var(--surface)] shadow-2xl sm:rounded-2xl sm:max-w-2xl"
               onClick={(event) => event.stopPropagation()}
             >
-              <div className="flex items-center justify-between border-b border-[var(--border)] px-5 pb-4 pt-5"><div><h2 className="text-xl font-semibold">Refine library</h2><p className="mt-1 text-sm text-[var(--muted)]">Only titles with English chapters are shown.</p></div><button onClick={() => setFilterOpen(false)} className="grid h-9 w-9 place-items-center rounded-lg text-[var(--muted)] hover:bg-[var(--surface-faint)]" aria-label="Close filters"><X className="h-5 w-5" /></button></div>
+              <div className="flex items-center justify-between border-b border-[var(--border)] px-5 pb-4 pt-5"><div><h2 id="library-filter-title" className="text-xl font-semibold">Refine library</h2><p className="mt-1 text-sm text-[var(--muted)]">Only titles with English chapters are shown.</p></div><button onClick={() => setFilterOpen(false)} className="grid h-11 w-11 place-items-center rounded-lg text-[var(--muted)] hover:bg-[var(--surface-faint)]" aria-label="Close filters"><X className="h-5 w-5" /></button></div>
               <div
                 data-filter-scroll
                 onWheel={(event) => event.stopPropagation()}

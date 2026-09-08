@@ -33,12 +33,15 @@ const Search = () => {
   const [results, setResults] = useState<Manga[]>([]);
   const [authors, setAuthors] = useState<Author[]>([]);
   const [loading, setLoading] = useState(false);
+  const [requestError, setRequestError] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
     const searchManga = async () => {
       if (!decodedQuery.trim()) return;
 
       setLoading(true);
+      setRequestError(false);
       try {
         const params = new URLSearchParams();
         params.set("title", decodedQuery);
@@ -57,6 +60,9 @@ const Search = () => {
           fetch(proxyUrl(`/manga?${params.toString()}`)),
           fetch(proxyUrl(`/author?${authorParams.toString()}`)),
         ]);
+        if (!mangaResponse.ok || !authorResponse.ok) {
+          throw new Error("Search request failed");
+        }
         const data = await mangaResponse.json();
         const authorData = await authorResponse.json();
         let mangaEntities = Array.isArray(data?.data) ? data.data : [];
@@ -138,15 +144,14 @@ const Search = () => {
         );
       } catch (err) {
         console.error("Search request failed:", err);
-        setResults([]);
-        setAuthors([]);
+        setRequestError(true);
       } finally {
         setLoading(false);
       }
     };
 
     searchManga();
-  }, [decodedQuery]);
+  }, [decodedQuery, retryKey]);
 
   return (
     <section className="pt-25 lg:pt-28">
@@ -176,6 +181,11 @@ const Search = () => {
                 </div>
               </div>
             ))}
+          </div>
+        ) : requestError ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <p className="max-w-md text-[var(--muted)]">Couldn&apos;t load results for &quot;{decodedQuery}&quot;. Check your connection and try again.</p>
+            <button type="button" onClick={() => setRetryKey((value) => value + 1)} className="mt-5 min-h-11 rounded-lg border border-[var(--border-strong)] px-4 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--surface)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--foreground)]">Try again</button>
           </div>
         ) : results.length === 0 && authors.length === 0 ? (
           // No Results Found

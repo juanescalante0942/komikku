@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unescaped-entities */
 "use client";
 import { useState, useEffect } from "react";
 import Image from "next/image";
@@ -124,15 +123,16 @@ export default function MangAI() {
         {/* Search */}
         <div className="flex px-8 gap-2">
           <input
+            aria-label="Describe the manga you want to read"
             placeholder="Something like Jujutsu Kaisen but..."
             value={q}
             onChange={(e) => setQ(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-            className="p-3 bg-zinc-900 border border-[var(--border)] rounded-lg w-full shadow-lg"
+            className="min-h-11 w-full rounded-lg border border-[var(--border)] bg-zinc-900 p-3 shadow-lg"
           />
           <button
             onClick={handleSearch}
-            className="group flex items-center justify-center gap-2 bg-[var(--primary)] text-[var(--foreground)] py-2 px-4 rounded-lg transition-transform duration-300 hover:scale-[1.02] hover:shadow-lg"
+            className="group inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[var(--primary)] px-4 text-[var(--foreground)] transition-transform duration-300 hover:scale-[1.02] hover:shadow-lg"
           >
             <Search className="w-5 h-5 transition-transform duration-300 group-hover:-rotate-12" />
             Search
