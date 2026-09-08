@@ -71,6 +71,12 @@ export function proxyUrl(path: string) {
   return `/api/proxy?url=${encodeURIComponent(path)}`;
 }
 
+export function imageProxyUrl(url: string) {
+  return url.startsWith("https://")
+    ? `/api/image-proxy?url=${encodeURIComponent(url)}`
+    : url;
+}
+
 function localized(value: unknown, fallback = "") {
   if (!value || typeof value !== "object") return fallback;
   const values = value as Record<string, string>;
@@ -81,7 +87,7 @@ export function coverUrl(manga: MangaDexEntity, size = "256") {
   const cover = manga.relationships?.find((item) => item.type === "cover_art");
   const fileName = cover?.attributes?.fileName as string | undefined;
   return fileName
-    ? `https://uploads.mangadex.org/covers/${manga.id}/${fileName}.${size}.jpg`
+    ? imageProxyUrl(`https://uploads.mangadex.org/covers/${manga.id}/${fileName}.${size}.jpg`)
     : "/images/placeholder.svg";
 }
 
