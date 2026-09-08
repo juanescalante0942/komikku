@@ -1,4 +1,5 @@
 import Library from "../components/Library";
+import { Suspense } from "react";
 
 export const metadata = {
   title: "Library",
@@ -8,8 +9,8 @@ export const metadata = {
 
 export default function LibraryPage() {
   return (
-    <>
+    <Suspense>
       <Library />
-    </>
+    </Suspense>
   );
 }

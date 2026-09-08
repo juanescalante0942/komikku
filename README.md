@@ -16,6 +16,21 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## MangaDex configuration
+
+The app uses MangaDex through the server-side proxy. Configure the API host and
+remove content from being served with comma-separated IDs in `.env.local`:
+
+```env
+MANGADEX_API_BASE=https://api.mangadex.dev
+MANGADEX_BLOCKED_MANGA_IDS=
+MANGADEX_BLOCKED_CHAPTER_IDS=
+MANGADEX_BLOCKED_GROUP_IDS=
+```
+
+MangaDex and the relevant scanlation group are credited in the app. Add IDs to
+the blocklist when MangaDex or a scanlation group requests content removal.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

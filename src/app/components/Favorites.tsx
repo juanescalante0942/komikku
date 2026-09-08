@@ -1,227 +1,81 @@
 "use client";
-import { useState, useEffect } from "react";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { keys, get, del } from "idb-keyval";
-import { Heart, HeartOff } from "lucide-react";
+import { Heart, HeartOff, HelpCircle } from "lucide-react";
 import { motion } from "framer-motion";
-import { HelpCircle } from "lucide-react";
 import { toast } from "react-toastify";
 
-type MangaCard = {
-  id: string;
-  title: string;
-  imageUrl: string;
-  author?: string;
-};
+type MangaCard = { id: string; title: string; imageUrl: string; author?: string };
 
 export default function FavoritesPage() {
   const [favorites, setFavorites] = useState<MangaCard[]>([]);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [show, setShow] = useState(false);
 
-  const loadFavorites = async () => {
-    const allKeys = await keys();
-    const favoriteKeys = allKeys.filter(
-      (key) => typeof key === "string" && key.startsWith("favorite-")
-    );
-
-    const favs: MangaCard[] = [];
-    for (const key of favoriteKeys) {
-      const data = await get(key);
-      if (data) favs.push(data);
-    }
-    setFavorites(favs);
-  };
+  useEffect(() => {
+    const loadFavorites = async () => {
+      const favoriteKeys = (await keys()).filter(
+        (key) => typeof key === "string" && key.startsWith("favorite-")
+      );
+      const favs: MangaCard[] = [];
+      for (const key of favoriteKeys) {
+        const data = await get(key);
+        if (data) favs.push(data);
+      }
+      setFavorites(favs);
+    };
+    loadFavorites();
+  }, []);
 
   const removeFavorite = async (id: string) => {
     await del(`favorite-${id}`);
     toast.error("Removed from favorites");
-    setFavorites((prev) => prev.filter((m) => m.id !== id));
+    setFavorites((prev) => prev.filter((manga) => manga.id !== id));
   };
 
-  useEffect(() => {
-    loadFavorites();
-  }, []);
-
-  if (favorites.length === 0) {
-    return (
-      <section className="pt-25 lg:pt-28">
-        <div className="container mx-auto px-4 text-white">
-          <div className="text-center mb-6">
-            {/* Title */}
-            <motion.h1
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
-              className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white mb-3 tracking-tight drop-shadow-md"
-            >
-              Favorites
-            </motion.h1>
-
-            {/* Simple Fade Divider */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3, duration: 0.4 }}
-              className="w-50 h-1 mx-auto mb-4 bg-[var(--primary)] rounded-full"
-            ></motion.div>
-
-            {/* Subtitle */}
-            <motion.p
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.5, ease: "easeOut" }}
-              className="text-[var(--secondary)] text-sm sm:text-base md:text-lg font-light max-w-xl mx-auto"
-            >
-              All the manga you’ve saved in one convenient place, stored on your
-              browser with no login required.
-              <span
-                className="relative ml-2 inline-flex"
-                onMouseEnter={() => setShow(true)}
-                onMouseLeave={() => setShow(false)}
-                onClick={() => setShow((s) => !s)} // tap works for mobile
-              >
-                <HelpCircle className="w-5 h-5 text-[var(--secondary)] cursor-pointer" />
-
-                {show && (
-                  <span className="absolute left-1/2 -translate-x-1/2 top-full mt-2 px-3 py-2 text-sm rounded-lg whitespace-nowrap bg-black/80 text-white shadow-lg z-50">
-                    Your favorites are saved directly in your browser using
-                    <span className="font-semibold"> local storage</span>.
-                    They’ll stay even if you refresh or close the site, but will
-                    reset if you clear your browser data.
-                  </span>
-                )}
-              </span>
-            </motion.p>
-          </div>
-          <div className="flex flex-col items-center justify-center text-center py-12 px-6">
-            <Heart className="w-12 h-12 text-[var(--primary)] mb-4 animate-bounce" />
-            <h2 className="text-xl font-semibold text-white mb-2">
-              No favorites yet
-            </h2>
-            <p className="text-gray-400 max-w-sm mb-4">
-              Looks like your shelf is empty. Explore the manga library and add
-              your favorites to keep them here!
-            </p>
-            <Link
-              href="/library"
-              className="inline-block bg-[var(--secondary)] text-black px-6 py-2.5 rounded-lg transition-all shadow-md hover:shadow-lg"
-            >
-              Browse Manga
-            </Link>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
   return (
-    <section className="pt-25 lg:pt-28">
-      <div className="container mx-auto px-4 text-white">
-        <div className="text-center mb-6">
-          {/* Title */}
-          <motion.h1
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white mb-3 tracking-tight drop-shadow-md"
-          >
-            Favorites
-          </motion.h1>
-
-          {/* Simple Fade Divider */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.4 }}
-            className="w-50 h-1 mx-auto mb-4 bg-[var(--primary)] rounded-full"
-          ></motion.div>
-
-          {/* Subtitle */}
-          <motion.p
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.5, ease: "easeOut" }}
-            className="text-[var(--secondary)] text-sm sm:text-base md:text-lg font-light max-w-xl mx-auto"
-          >
-            All the manga you’ve saved in one convenient place, stored on your
-            browser with no login required.
-            <span
-              className="relative ml-2 inline-flex"
-              onMouseEnter={() => setShow(true)}
-              onMouseLeave={() => setShow(false)}
-              onClick={() => setShow((s) => !s)} // tap works for mobile
-            >
-              <HelpCircle className="w-5 h-5 text-[var(--secondary)] cursor-pointer" />
-
-              {show && (
-                <span className="absolute left-1/2 -translate-x-1/2 top-full mt-2 px-3 py-2 text-sm rounded-lg whitespace-nowrap bg-black/80 text-white shadow-lg z-50">
-                  Your favorites are saved directly in your browser using
-                  <span className="font-semibold"> local storage</span>. They’ll
-                  stay even if you refresh or close the site, but will reset if
-                  you clear your browser data.
-                </span>
-              )}
+    <section className="pb-12 pt-28 lg:pt-32">
+      <div className="container">
+        <motion.header initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, ease: "easeOut" }} className="mb-10 max-w-2xl">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <h1 className="text-4xl font-semibold leading-none tracking-tight text-[var(--foreground)] sm:text-5xl">Favorites</h1>
+              <div className="mt-4 h-1 w-16 rounded-full bg-[var(--primary)]" />
+            </div>
+            {favorites.length > 0 && <span className="pb-1 text-sm text-[var(--muted)]">{favorites.length} {favorites.length === 1 ? "title" : "titles"}</span>}
+          </div>
+          <p className="mt-5 text-base font-light leading-relaxed text-[var(--secondary)]">
+            Your saved manga, kept locally in this browser.
+            <span className="relative ml-2 inline-flex align-middle" onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}>
+              <button type="button" aria-label="How favorites are saved" aria-expanded={show} onClick={() => setShow((value) => !value)} className="rounded-full text-[var(--muted)] transition-colors hover:text-[var(--foreground)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--foreground)]"><HelpCircle className="h-5 w-5" /></button>
+              {show && <span className="absolute left-0 top-full z-50 mt-2 w-64 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm leading-relaxed text-[var(--secondary)] shadow-xl">Saved directly in your browser. They remain after refreshes, but reset when browser data is cleared.</span>}
             </span>
-          </motion.p>
-        </div>
+          </p>
+        </motion.header>
 
-        <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
-          {favorites.map((manga) => (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{
-                opacity: 1,
-                y: 0,
-                transition: {
-                  duration: 0.3,
-                  ease: "easeOut",
-                },
-              }}
-              key={manga.id}
-              className="bg-zinc-800 rounded-lg overflow-hidden shadow relative group"
-            >
-              <Link
-                href={`/manga/${manga.id}`}
-                className="block relative overflow-hidden shadow-md transition hover:shadow-lg"
-              >
-                <div className="aspect-[2/3] w-full relative">
-                  <Image
-                    src={manga.imageUrl}
-                    alt=""
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-[1.05]"
-                  />
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent transition duration-300 group-hover:from-black/90 group-hover:via-black/40" />
-                <div className="absolute bottom-0 left-0 p-4 transition-transform duration-300 group-hover:-translate-y-2">
-                  <h3 className="text-md font-semibold text-white mb-1 line-clamp-2 group-hover:text-[var(--secondary)] transition-colors">
-                    {manga.title}
-                  </h3>
-                </div>
-              </Link>
-
-              {/* Favorite badge button */}
-              <button
-                onClick={() => removeFavorite(manga.id)}
-                onMouseEnter={() => setHoveredId(manga.id)}
-                onMouseLeave={() => setHoveredId(null)}
-                title="Remove from favorites"
-                className="absolute bottom-3 right-3 bg-zinc-900/70 hover:bg-[var(--primary)] p-2 rounded-full shadow-md transition-colors"
-              >
-                {hoveredId === manga.id ? (
-                  <HeartOff className="w-8 h-8 text-white" />
-                ) : (
-                  <Heart
-                    className="w-8 h-8 text-[var(--primary)]"
-                    fill="currentColor"
-                  />
-                )}
-              </button>
-            </motion.div>
-          ))}
-        </div>
+        {favorites.length === 0 ? (
+          <div className="mx-auto flex max-w-xl flex-col items-center border-y border-[var(--border)] py-12 text-center sm:mx-0 sm:items-start sm:text-left">
+            <Heart className="mb-5 h-10 w-10 text-[var(--primary)]" />
+            <h2 className="text-2xl font-semibold tracking-tight text-[var(--foreground)]">No favorites yet</h2>
+            <p className="mt-3 max-w-sm leading-relaxed text-[var(--muted)]">Explore the manga library and save titles you want to find again.</p>
+            <Link href="/library" className="mt-6 inline-flex min-h-11 items-center rounded-lg bg-[var(--secondary)] px-5 text-sm font-medium text-[var(--background)] transition-colors hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--foreground)]">Browse manga</Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
+            {favorites.map((manga) => (
+              <motion.article key={manga.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease: "easeOut" }} className="group relative min-w-0">
+                <Link href={`/manga/${manga.id}`} className="block rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-[var(--foreground)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]">
+                  <div className="relative aspect-[2/3] overflow-hidden rounded-lg bg-[var(--surface-faint)] shadow-lg transition-shadow duration-300 group-hover:shadow-xl"><Image src={manga.imageUrl} alt={manga.title} fill className="object-cover transition-transform duration-500 group-hover:scale-[1.04]" /></div>
+                  <div className="pt-3 pr-10"><h2 className="line-clamp-2 text-sm font-semibold leading-snug text-[var(--foreground)]">{manga.title}</h2>{manga.author && <p className="mt-1 truncate text-xs text-[var(--muted)]">{manga.author}</p>}</div>
+                </Link>
+                <button onClick={() => removeFavorite(manga.id)} title="Remove from favorites" aria-label={`Remove ${manga.title} from favorites`} onMouseEnter={() => setHoveredId(manga.id)} onMouseLeave={() => setHoveredId(null)} className="absolute right-1 top-[calc(66.667%-1.75rem)] grid h-10 w-10 place-items-center rounded-full border border-[var(--border-strong)] bg-[var(--surface)]/90 text-[var(--primary)] shadow-lg backdrop-blur-sm transition-colors hover:bg-[var(--primary)] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--foreground)]">{hoveredId === manga.id ? <HeartOff className="h-5 w-5" /> : <Heart className="h-5 w-5" fill="currentColor" />}</button>
+              </motion.article>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
