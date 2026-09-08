@@ -15,6 +15,7 @@ import {
 import {
   fetchAllChapters,
   mangaTitle,
+  imageProxyUrl,
   normalizeChapter,
   proxyUrl,
   relatedEntity,
@@ -185,7 +186,7 @@ export default function Reader() {
         const pageData = useDataSaver ? atHome.chapter?.dataSaver || [] : atHome.chapter.data;
         const pagePath = useDataSaver ? "data-saver" : "data";
         const imageUrls = pageData.map(
-          (file: string) => `${atHome.baseUrl}/${pagePath}/${atHome.chapter.hash}/${file}`
+          (file: string) => imageProxyUrl(`${atHome.baseUrl}/${pagePath}/${atHome.chapter.hash}/${file}`)
         );
         if (!mounted || !imageUrls.length) {
           setStatusMessage("No readable pages are available for this chapter.");

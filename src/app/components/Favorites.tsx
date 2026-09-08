@@ -7,6 +7,7 @@ import { keys, get, del } from "idb-keyval";
 import { Heart, HeartOff, HelpCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
+import { imageProxyUrl } from "../../lib/mangadex";
 
 type MangaCard = { id: string; title: string; imageUrl: string; author?: string };
 
@@ -68,7 +69,7 @@ export default function FavoritesPage() {
             {favorites.map((manga) => (
               <motion.article key={manga.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease: "easeOut" }} className="group relative min-w-0">
                 <Link href={`/manga/${manga.id}`} className="block rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-[var(--foreground)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]">
-                  <div className="relative aspect-[2/3] overflow-hidden rounded-lg bg-[var(--surface-faint)] shadow-lg transition-shadow duration-300 group-hover:shadow-xl"><Image src={manga.imageUrl} alt={manga.title} fill className="object-cover transition-transform duration-500 group-hover:scale-[1.04]" /></div>
+                  <div className="relative aspect-[2/3] overflow-hidden rounded-lg bg-[var(--surface-faint)] shadow-lg transition-shadow duration-300 group-hover:shadow-xl"><Image src={imageProxyUrl(manga.imageUrl)} alt={manga.title} fill className="object-cover transition-transform duration-500 group-hover:scale-[1.04]" /></div>
                   <div className="pt-3 pr-10"><h2 className="line-clamp-2 text-sm font-semibold leading-snug text-[var(--foreground)]">{manga.title}</h2>{manga.author && <p className="mt-1 truncate text-xs text-[var(--muted)]">{manga.author}</p>}</div>
                 </Link>
                 <button onClick={() => removeFavorite(manga.id)} title="Remove from favorites" aria-label={`Remove ${manga.title} from favorites`} onMouseEnter={() => setHoveredId(manga.id)} onMouseLeave={() => setHoveredId(null)} className="absolute right-1 top-[calc(66.667%-1.75rem)] grid h-10 w-10 place-items-center rounded-full border border-[var(--border-strong)] bg-[var(--surface)]/90 text-[var(--primary)] shadow-lg backdrop-blur-sm transition-colors hover:bg-[var(--primary)] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--foreground)]">{hoveredId === manga.id ? <HeartOff className="h-5 w-5" /> : <Heart className="h-5 w-5" fill="currentColor" />}</button>

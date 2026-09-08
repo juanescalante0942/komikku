@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const MANGADEX_BASE =
-  process.env.MANGADEX_API_BASE || "https://api.mangadex.dev";
+  process.env.MANGADEX_API_BASE || "https://api.mangadex.org";
 const blockedMangaIds = new Set(
   (process.env.MANGADEX_BLOCKED_MANGA_IDS || "").split(",").map((id) => id.trim()).filter(Boolean)
 );
